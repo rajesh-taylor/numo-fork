@@ -30,10 +30,10 @@ import com.electricdreams.numo.feature.enableEdgeToEdgeWithPill
 import com.electricdreams.numo.R
 import com.electricdreams.numo.core.cashu.CashuWalletManager
 import com.electricdreams.numo.core.model.Amount
+import com.electricdreams.numo.core.util.LightningAddressManager
 import com.electricdreams.numo.core.util.MintManager
 import com.electricdreams.numo.feature.settings.WithdrawLightningActivity
 import com.electricdreams.numo.ui.components.EmptyStateHelper
-import com.electricdreams.numo.ui.components.LightningStrikeView
 import com.electricdreams.numo.ui.components.MintSelectionBottomSheet
 import com.electricdreams.numo.ui.util.DialogHelper
 import com.google.android.material.slider.Slider
@@ -70,6 +70,7 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
     private lateinit var enableSwitch: SwitchCompat
     private lateinit var enableToggleRow: LinearLayout
     private lateinit var lightningAddressInput: EditText
+    private lateinit var lightningAddressValidation: TextView
     private lateinit var thresholdDisplay: TextView
     private lateinit var percentageSlider: Slider
     private lateinit var percentageBadge: TextView
@@ -91,10 +92,13 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
 
     private var isUpdatingUI = false
     
-    // Current threshold value (in sats)
+        // Current threshold value (in sats)
     private var currentThreshold: Long = AutoWithdrawSettingsManager.DEFAULT_THRESHOLD_SATS
+    // Min threshold fetched from LNURL
+    private var fetchedMinThresholdSats: Long = AutoWithdrawSettingsManager.MIN_THRESHOLD_SATS
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_auto_withdraw_settings)
 
@@ -132,6 +136,7 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
 
         // Config inputs
         lightningAddressInput = findViewById(R.id.lightning_address_input)
+        lightningAddressValidation = findViewById(R.id.lightning_address_validation)
         thresholdDisplay = findViewById(R.id.threshold_display)
         percentageSlider = findViewById(R.id.percentage_slider)
         percentageBadge = findViewById(R.id.percentage_badge)
@@ -166,7 +171,6 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
                 animateConfigContainer(isChecked)
                 animateStatusChange(isChecked)
                 if (isChecked) {
-                    playLightningStrike()
                 }
             }
         }
@@ -176,8 +180,24 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
+                val address = s?.toString()?.trim() ?: ""
+                val isValidFormat = LightningAddressManager.getInstance(this@AutoWithdrawSettingsActivity).isValidLightningAddress(address)
+                
+                if (address.isBlank()) {
+                    lightningAddressValidation.visibility = View.GONE
+                } else if (!isValidFormat) {
+                    lightningAddressValidation.visibility = View.VISIBLE
+                    lightningAddressValidation.text = getString(R.string.auto_withdraw_lightning_address_invalid)
+                    lightningAddressValidation.setTextColor(ContextCompat.getColor(this@AutoWithdrawSettingsActivity, R.color.color_error))
+                } else {
+                    // Valid format, start network ping
+                    if (!isUpdatingUI) {
+                        fetchMinThreshold(address)
+                    }
+                }
+                
                 if (!isUpdatingUI) {
-                    settingsManager.setDefaultLightningAddress(s?.toString()?.trim() ?: "")
+                    settingsManager.setDefaultLightningAddress(address)
                 }
             }
         })
@@ -196,6 +216,12 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
                 settingsManager.setDefaultPercentage(percentage)
                 // Subtle haptic on step changes
                 slider.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+                
+                // Recalculate minimum threshold based on new percentage
+                val address = lightningAddressInput.text.toString().trim()
+                if (LightningAddressManager.getInstance(this@AutoWithdrawSettingsActivity).isValidLightningAddress(address)) {
+                    fetchMinThreshold(address)
+                }
             }
         }
         
@@ -254,6 +280,9 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
     }
     
     private fun showThresholdEditDialog() {
+        val minAmount = Amount(fetchedMinThresholdSats, Amount.Currency.BTC)
+        val dynamicHelperText = getString(R.string.auto_withdraw_threshold_helper_dynamic, minAmount.toString())
+
         DialogHelper.showInput(
             context = this,
             config = DialogHelper.InputConfig(
@@ -262,14 +291,14 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
                 hint = "50000",
                 initialValue = currentThreshold.toString(),
                 prefix = "₿",
-                helperText = getString(R.string.auto_withdraw_threshold_helper),
+                helperText = dynamicHelperText,
                 inputType = android.text.InputType.TYPE_CLASS_NUMBER,
                 saveText = getString(R.string.common_save),
                 onSave = { value ->
                     val newThreshold = value.replace(",", "").toLongOrNull()
                         ?: AutoWithdrawSettingsManager.DEFAULT_THRESHOLD_SATS
                     currentThreshold = newThreshold.coerceIn(
-                        AutoWithdrawSettingsManager.MIN_THRESHOLD_SATS,
+                        fetchedMinThresholdSats,
                         AutoWithdrawSettingsManager.MAX_THRESHOLD_SATS
                     )
                     settingsManager.setDefaultThreshold(currentThreshold)
@@ -277,7 +306,7 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
                 },
                 validator = { value ->
                     val amount = value.replace(",", "").toLongOrNull()
-                    amount != null && amount >= AutoWithdrawSettingsManager.MIN_THRESHOLD_SATS 
+                    amount != null && amount >= fetchedMinThresholdSats
                         && amount <= AutoWithdrawSettingsManager.MAX_THRESHOLD_SATS
                 }
             )
@@ -300,6 +329,15 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
         configContainer.visibility = if (enabled) View.VISIBLE else View.GONE
 
         lightningAddressInput.setText(settingsManager.getDefaultLightningAddress())
+        val savedAddress = settingsManager.getDefaultLightningAddress()
+        
+        if (LightningAddressManager.getInstance(this).isValidLightningAddress(savedAddress)) {
+            fetchMinThreshold(savedAddress)
+        } else if (savedAddress.isNotBlank()) {
+            lightningAddressValidation.visibility = View.VISIBLE
+            lightningAddressValidation.text = getString(R.string.auto_withdraw_lightning_address_invalid)
+            lightningAddressValidation.setTextColor(ContextCompat.getColor(this, R.color.color_error))
+        }
         
         currentThreshold = settingsManager.getDefaultThreshold()
         updateThresholdDisplay()
@@ -336,14 +374,43 @@ class AutoWithdrawSettingsActivity : AppCompatActivity() {
 
     }
 
-    private fun playLightningStrike() {
-        val root = findViewById<ViewGroup>(R.id.root_layout)
-        val strike = LightningStrikeView(this)
-        root.addView(strike, ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        ))
-        strike.strike()
+    private fun fetchMinThreshold(address: String) {
+        // Show checking state
+        lightningAddressValidation.visibility = View.VISIBLE
+        lightningAddressValidation.text = getString(R.string.auto_withdraw_lightning_address_checking)
+        lightningAddressValidation.setTextColor(ContextCompat.getColor(this, R.color.color_text_tertiary))
+
+        val percentage = settingsManager.getDefaultPercentage()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val details = com.electricdreams.numo.core.util.LnUrlClient.fetchLnUrlDetails(address)
+            withContext(Dispatchers.Main) {
+                if (details != null) {
+                    // Update validation UI
+                    lightningAddressValidation.text = getString(R.string.auto_withdraw_lightning_address_valid)
+                    lightningAddressValidation.setTextColor(ContextCompat.getColor(this@AutoWithdrawSettingsActivity, R.color.color_success_green))
+
+                    // convert msat to sat
+                    val minSendableSats = details.minSendable / 1000
+                    
+                    // Min threshold = minSendableSats * 100 / percentage
+                    fetchedMinThresholdSats = (minSendableSats * 100 / percentage) + 1 // +1 to ensure it's strictly > min
+                    
+                    // Ensure threshold is at least the min
+                    if (currentThreshold < fetchedMinThresholdSats) {
+                        currentThreshold = fetchedMinThresholdSats
+                        settingsManager.setDefaultThreshold(currentThreshold)
+                        updateThresholdDisplay()
+                    }
+                } else {
+                    // Update validation UI
+                    lightningAddressValidation.text = getString(R.string.auto_withdraw_lightning_address_invalid)
+                    lightningAddressValidation.setTextColor(ContextCompat.getColor(this@AutoWithdrawSettingsActivity, R.color.color_error))
+                    
+                    fetchedMinThresholdSats = AutoWithdrawSettingsManager.MIN_THRESHOLD_SATS
+                }
+            }
+        }
     }
 
     private fun animateStatusChange(enabled: Boolean) {

@@ -717,12 +717,16 @@
     <string name="auto_withdraw_lightning_address_label">Lightning Address</string>
     <string name="auto_withdraw_lightning_address_hint">you@wallet.com</string>
     <string name="auto_withdraw_lightning_address_helper">Funds will be sent to this address automatically</string>
+    <string name="auto_withdraw_lightning_address_valid">Valid Lightning address</string>
+    <string name="auto_withdraw_lightning_address_invalid">Invalid Lightning address</string>
+    <string name="auto_withdraw_lightning_address_checking">Checking address...</string>
     
     <string name="auto_withdraw_threshold_title">Balance Threshold</string>
     <string name="auto_withdraw_threshold_subtitle">Trigger when balance exceeds</string>
     <string name="auto_withdraw_threshold_label">Threshold</string>
     <string name="auto_withdraw_threshold_hint">Trigger withdrawal when balance reaches this amount</string>
     <string name="auto_withdraw_threshold_helper">Min: ₿1,000 • Max: ₿1,000,000</string>
+    <string name="auto_withdraw_threshold_helper_dynamic">Min: %1$s • Max: ₿1,000,000</string>
     
     <string name="auto_withdraw_percentage_title">Withdraw Amount</string>
     <string name="auto_withdraw_percentage_subtitle">Percentage of balance to send</string>
