@@ -112,6 +112,14 @@
                 app:rowIcon="@drawable/ic_lightning_bolt"
                 app:rowTitle="@string/settings_item_withdrawals_title" />
 
+            <!-- BTCPay Server -->
+            <com.electricdreams.numo.ui.components.SettingsRowView
+                android:id="@+id/btcpay_settings_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:rowIcon="@drawable/ic_settings"
+                app:rowTitle="@string/btcpay_settings_title" />
+
             <!-- =========================== -->
             <!-- SECURITY & PRIVACY SECTION -->
             <!-- =========================== -->

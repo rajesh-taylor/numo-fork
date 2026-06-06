@@ -184,6 +184,7 @@
 
             <!-- Center Logo Overlay for Cashu -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cashu_logo_card"
                 android:layout_width="@dimen/icon_size_large"
                 android:layout_height="@dimen/icon_size_large"
                 android:layout_gravity="center"

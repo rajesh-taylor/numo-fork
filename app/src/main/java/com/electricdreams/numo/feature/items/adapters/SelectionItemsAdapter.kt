@@ -437,15 +437,36 @@ class SelectionItemsAdapter(
         }
 
         private fun loadItemImage(item: Item) {
-            if (!item.imagePath.isNullOrEmpty()) {
-                val imageFile = File(item.imagePath!!)
-                if (imageFile.exists()) {
-                    val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-                    if (bitmap != null) {
-                        itemImageView.setImageBitmap(bitmap)
-                        imagePlaceholder?.visibility = View.GONE
-                        return
+            val path = item.imagePath
+            android.util.Log.d("ItemImage", "item=${item.name} path=${path?.take(60) ?: "null"}")
+            if (!path.isNullOrEmpty()) {
+                val bitmap = when {
+                    path.startsWith("data:") -> {
+                        try {
+                            val base64 = path.substringAfter(",")
+                            val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+                            BitmapFactory.decodeByteArray(bytes, 0, bytes.size).also {
+                                android.util.Log.d("ItemImage", "  data: bitmap=${it != null}")
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.w("ItemImage", "  data: decode failed: ${e.message}")
+                            null
+                        }
                     }
+                    path.startsWith("http://") || path.startsWith("https://") -> {
+                        android.util.Log.w("ItemImage", "  url: not supported inline")
+                        null
+                    }
+                    else -> {
+                        val file = File(path)
+                        android.util.Log.d("ItemImage", "  file: exists=${file.exists()}")
+                        if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+                    }
+                }
+                if (bitmap != null) {
+                    itemImageView.setImageBitmap(bitmap)
+                    imagePlaceholder?.visibility = View.GONE
+                    return
                 }
             }
             itemImageView.setImageBitmap(null)

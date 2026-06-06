@@ -18,6 +18,7 @@ import com.electricdreams.numo.feature.autowithdraw.AutoWithdrawSettingsActivity
 import com.electricdreams.numo.ui.components.SettingsRowView
 import com.electricdreams.numo.payment.DefaultPaymentMethodManager
 import android.widget.TextView
+import com.electricdreams.numo.core.prefs.PreferenceStore
 
 /**
  * Main Settings screen.
@@ -53,11 +54,43 @@ class SettingsActivity : AppCompatActivity() {
         // Update developer section visibility when returning from About
         updateDeveloperSectionVisibility()
         updateDefaultPaymentMethodSubtitle()
+        updateBtcPayDependentItems()
     }
 
     private fun setupViews() {
         updateDeveloperSectionVisibility()
         updateDefaultPaymentMethodSubtitle()
+        updateBtcPayDependentItems()
+    }
+
+    private fun updateBtcPayDependentItems() {
+        val btcPayEnabled = PreferenceStore.app(this).getBoolean("btcpay_enabled", false)
+
+        val mintsItem = findViewById<View>(R.id.mints_settings_item)
+        val withdrawalsItem = findViewById<View>(R.id.withdrawals_settings_item)
+        val webhooksItem = findViewById<View>(R.id.webhooks_settings_item)
+
+        if (btcPayEnabled) {
+            mintsItem.alpha = 0.4f
+            mintsItem.isEnabled = false
+            mintsItem.setOnClickListener(null)
+            withdrawalsItem.alpha = 0.4f
+            withdrawalsItem.isEnabled = false
+            withdrawalsItem.setOnClickListener(null)
+            webhooksItem.alpha = 0.4f
+            webhooksItem.isEnabled = false
+            webhooksItem.setOnClickListener(null)
+        } else {
+            mintsItem.alpha = 1f
+            mintsItem.isEnabled = true
+            mintsItem.setOnClickListener { openProtectedActivity(MintsSettingsActivity::class.java) }
+            withdrawalsItem.alpha = 1f
+            withdrawalsItem.isEnabled = true
+            withdrawalsItem.setOnClickListener { openProtectedActivity(AutoWithdrawSettingsActivity::class.java) }
+            webhooksItem.alpha = 1f
+            webhooksItem.isEnabled = true
+            webhooksItem.setOnClickListener { openProtectedActivity(WebhookSettingsActivity::class.java) }
+        }
     }
     
     private fun updateDefaultPaymentMethodSubtitle() {
@@ -103,22 +136,16 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, CurrencySettingsActivity::class.java))
         }
 
-        // Mints - protected (can withdraw funds)
-        findViewById<View>(R.id.mints_settings_item).setOnClickListener {
-            openProtectedActivity(MintsSettingsActivity::class.java)
-        }
-
-        findViewById<View>(R.id.webhooks_settings_item).setOnClickListener {
-            openProtectedActivity(WebhookSettingsActivity::class.java)
-        }
-
-        // Withdrawals - protected (handles funds)
-        findViewById<View>(R.id.withdrawals_settings_item).setOnClickListener {
-            openProtectedActivity(AutoWithdrawSettingsActivity::class.java)
-        }
+        // Mints, Withdrawals and Webhooks listeners are managed by updateBtcPayDependentItems()
 
         findViewById<View>(R.id.default_payment_method_settings_item).setOnClickListener {
             startActivity(Intent(this, DefaultPaymentMethodSettingsActivity::class.java))
+        }
+
+
+        // BTCPay Server - protected (holds API key)
+        findViewById<View>(R.id.btcpay_settings_item).setOnClickListener {
+            openProtectedActivity(BtcPaySettingsActivity::class.java)
         }
 
         // === Security Section ===
