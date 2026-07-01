@@ -6,7 +6,7 @@
     android:background="@color/color_bg_white">
 
     <!-- Top App Bar -->
-    <com.electricdreams.numo.ui.components.NumoTopBar
+    <io.refueler.merchant.ui.components.NumoTopBar
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/top_bar_height"
@@ -81,7 +81,7 @@
 
             </LinearLayout>
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/backup_mnemonic_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -147,7 +147,7 @@
             </LinearLayout>
 
             <!-- Set PIN Item -->
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/setup_pin_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -156,7 +156,7 @@
                 app:rowSubtitle="@string/security_settings_setup_pin_subtitle"
                 app:rowShowChevron="true" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/change_pin_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -166,7 +166,7 @@
                 app:rowSubtitle="@string/security_settings_change_pin_subtitle"
                 app:rowShowChevron="true" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/remove_pin_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -192,7 +192,7 @@
                 android:text="@string/security_settings_section_recovery"
                 android:textAppearance="@style/Text.SectionHeader" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/restore_wallet_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -41,13 +41,13 @@ Numo relies heavily on unit testing, specifically leveraging Robolectric for And
 
 **Run all tests in a specific class:**
 ```bash
-./gradlew testDebugUnitTest --tests "com.electricdreams.numo.core.model.ItemTest"
+./gradlew testDebugUnitTest --tests "io.refueler.merchant.core.model.ItemTest"
 ```
 
 **Run a single, specific test method (CRITICAL FOR AGENTS):**
 Use quotes around the class and method name. If the method uses Kotlin backticks for spaces, include the spaces exactly as they appear in the code (without the backticks in the CLI command).
 ```bash
-./gradlew testDebugUnitTest --tests "com.electricdreams.numo.core.model.ItemTest.net and gross price with VAT disabled"
+./gradlew testDebugUnitTest --tests "io.refueler.merchant.core.model.ItemTest.net and gross price with VAT disabled"
 ```
 
 ### Writing Tests
@@ -61,7 +61,7 @@ Use quotes around the class and method name. If the method uses Kotlin backticks
   @Test
   fun `given zero balance, when mint requested, then show error`() = runTest { ... }
   ```
-- **Location:** Unit tests in `app/src/test/java/com/electricdreams/numo/`.
+- **Location:** Unit tests in `app/src/test/java/io.refueler.merchant/`.
 
 ## 4. Code Style & Formatting
 
@@ -109,10 +109,10 @@ Use quotes around the class and method name. If the method uses Kotlin backticks
 - **User Feedback:** Use Android `Toast` or `Snackbar` for actionable user errors visible on the UI.
 
 ## 6. File System & Paths
-- **Source Code:** `app/src/main/java/com/electricdreams/numo/`
+- **Source Code:** `app/src/main/java/io.refueler.merchant/`
 - **Resources:** `app/src/main/res/`
 - **Manifest:** `app/src/main/AndroidManifest.xml`
-- **Tests:** `app/src/test/java/com/electricdreams/numo/`
+- **Tests:** `app/src/test/java/io.refueler.merchant/`
 
 ## 7. Workflow & Operational Directives for Agents
 

@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.electricdreams.numo"
+    namespace = "io.refueler.merchant"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.electricdreams.numo"
+        applicationId = "io.refueler.merchant"
         minSdk = 24
         targetSdk = 35
         versionCode = 20

@@ -9,7 +9,7 @@
     android:paddingHorizontal="20dp"
     android:paddingVertical="16dp">
 
-    <com.electricdreams.numo.feature.insights.StackedAvatarsView
+    <io.refueler.merchant.feature.insights.StackedAvatarsView
         android:id="@+id/avatars"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -47,7 +47,7 @@
 
         <!-- Onboarding Activity - First Launch -->
         <activity
-            android:name="com.electricdreams.numo.feature.onboarding.OnboardingActivity"
+            android:name="io.refueler.merchant.feature.onboarding.OnboardingActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Numo.Splash"
@@ -69,7 +69,7 @@
 
         <!-- Modern POS Activity - Main App -->
         <activity
-            android:name="com.electricdreams.numo.ModernPOSActivity"
+            android:name="io.refueler.merchant.ModernPOSActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Numo"
@@ -79,45 +79,45 @@
         </activity>
 
         <!-- Payment Request Activity (QR / Nostr / Lightning request screen) -->
-        <activity android:name="com.electricdreams.numo.PaymentRequestActivity"
+        <activity android:name="io.refueler.merchant.PaymentRequestActivity"
             android:exported="false"
             android:label="Payment Request"
             android:theme="@style/Theme.Numo"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName="com.electricdreams.numo.ModernPOSActivity">
+            android:parentActivityName="io.refueler.merchant.ModernPOSActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.electricdreams.numo.ModernPOSActivity" />
+                android:value="io.refueler.merchant.ModernPOSActivity" />
         </activity>
 
         <!-- Payment Received Activity (success screen) -->
-        <activity android:name="com.electricdreams.numo.PaymentReceivedActivity"
+        <activity android:name="io.refueler.merchant.PaymentReceivedActivity"
             android:exported="false"
             android:label="Payment Received"
             android:theme="@style/Theme.Numo"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName="com.electricdreams.numo.ModernPOSActivity">
+            android:parentActivityName="io.refueler.merchant.ModernPOSActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.electricdreams.numo.ModernPOSActivity" />
+                android:value="io.refueler.merchant.ModernPOSActivity" />
         </activity>
 
         <!-- Payment Failure Activity -->
-        <activity android:name="com.electricdreams.numo.PaymentFailureActivity"
+        <activity android:name="io.refueler.merchant.PaymentFailureActivity"
             android:exported="false"
             android:label="Payment Failed"
             android:theme="@style/Theme.Numo"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName="com.electricdreams.numo.ModernPOSActivity">
+            android:parentActivityName="io.refueler.merchant.ModernPOSActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.electricdreams.numo.ModernPOSActivity" />
+                android:value="io.refueler.merchant.ModernPOSActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.history.PaymentsHistoryActivity"
+        <activity android:name="io.refueler.merchant.feature.history.PaymentsHistoryActivity"
             android:exported="false"
             android:label="@string/history_toolbar_title"
             android:theme="@style/Theme.Numo"
@@ -129,7 +129,7 @@
                 android:value=".ModernPOSActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.insights.InsightsActivity"
+        <activity android:name="io.refueler.merchant.feature.insights.InsightsActivity"
             android:exported="false"
             android:label="@string/insights_title"
             android:theme="@style/Theme.Numo"
@@ -141,7 +141,7 @@
                 android:value=".feature.history.PaymentsHistoryActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.history.TransactionDetailActivity"
+        <activity android:name="io.refueler.merchant.feature.history.TransactionDetailActivity"
             android:exported="false"
             android:label="@string/transaction_detail_toolbar_title"
             android:theme="@style/Theme.Numo"
@@ -153,7 +153,7 @@
                 android:value=".feature.history.PaymentsHistoryActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.SettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/settings_title"
             android:theme="@style/Theme.Numo"
@@ -165,7 +165,7 @@
                 android:value=".ModernPOSActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.ThemeSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.ThemeSettingsActivity"
             android:exported="false"
             android:label="@string/settings_theme_title"
             android:theme="@style/Theme.Numo"
@@ -177,7 +177,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.DefaultPaymentMethodSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.DefaultPaymentMethodSettingsActivity"
             android:exported="false"
             android:label="@string/settings_item_default_payment_method_title"
             android:theme="@style/Theme.Numo"
@@ -189,7 +189,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.CurrencySettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.CurrencySettingsActivity"
             android:exported="false"
             android:label="@string/settings_currency_title"
             android:theme="@style/Theme.Numo"
@@ -201,7 +201,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.WebhookSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.WebhookSettingsActivity"
             android:exported="false"
             android:label="@string/webhook_settings_title"
             android:theme="@style/Theme.Numo"
@@ -213,7 +213,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.MintsSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.MintsSettingsActivity"
             android:exported="false"
             android:label="@string/settings_mints_title"
             android:theme="@style/Theme.Numo"
@@ -226,7 +226,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.MintDetailsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.MintDetailsActivity"
             android:exported="false"
             android:label="@string/mint_details_title"
             android:theme="@style/Theme.Numo"
@@ -237,7 +237,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.settings.MintsSettingsActivity" />
         </activity>
-        <activity android:name="com.electricdreams.numo.feature.settings.SecuritySettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.SecuritySettingsActivity"
             android:exported="false"
             android:label="@string/settings_security_title"
             android:theme="@style/Theme.Numo"
@@ -249,7 +249,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.LanguageSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.LanguageSettingsActivity"
             android:exported="false"
             android:label="@string/language_settings_title"
             android:theme="@style/Theme.Numo"
@@ -262,14 +262,14 @@
         </activity>
         
         <!-- PIN Security Activities -->
-        <activity android:name="com.electricdreams.numo.feature.pin.PinEntryActivity"
+        <activity android:name="io.refueler.merchant.feature.pin.PinEntryActivity"
             android:exported="false"
             android:label="Enter PIN"
             android:theme="@style/Theme.Numo"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
         
-        <activity android:name="com.electricdreams.numo.feature.pin.PinSetupActivity"
+        <activity android:name="io.refueler.merchant.feature.pin.PinSetupActivity"
             android:exported="false"
             android:label="Set Up PIN"
             android:theme="@style/Theme.Numo"
@@ -281,7 +281,7 @@
                 android:value=".feature.settings.SecuritySettingsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.pin.PinResetActivity"
+        <activity android:name="io.refueler.merchant.feature.pin.PinResetActivity"
             android:exported="false"
             android:label="Reset PIN"
             android:theme="@style/Theme.Numo"
@@ -293,7 +293,7 @@
                 android:value=".feature.pin.PinEntryActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.AboutActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.AboutActivity"
             android:exported="false"
             android:label="About"
             android:theme="@style/Theme.Numo"
@@ -305,14 +305,14 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.btcmap.BtcMapExplainerActivity"
+        <activity android:name="io.refueler.merchant.feature.btcmap.BtcMapExplainerActivity"
             android:exported="false"
             android:label="BTCMap"
             android:theme="@style/Theme.Numo"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
         
-        <activity android:name="com.electricdreams.numo.feature.settings.DeveloperSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.DeveloperSettingsActivity"
             android:exported="false"
             android:label="@string/developer_settings_title"
             android:theme="@style/Theme.Numo"
@@ -324,7 +324,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.ErrorLogsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.ErrorLogsActivity"
             android:exported="false"
             android:label="@string/developer_error_logs_title"
             android:theme="@style/Theme.Numo"
@@ -336,7 +336,7 @@
                 android:value=".feature.settings.DeveloperSettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.WalletLogsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.WalletLogsActivity"
             android:exported="false"
             android:label="@string/developer_wallet_logs_title"
             android:theme="@style/Theme.Numo"
@@ -348,7 +348,7 @@
                 android:value=".feature.settings.DeveloperSettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.settings.SeedPhraseActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.SeedPhraseActivity"
             android:exported="false"
             android:label="@string/seed_phrase_toolbar_title"
             android:theme="@style/Theme.Numo"
@@ -360,7 +360,7 @@
                 android:value=".feature.settings.SecuritySettingsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.RestoreWalletActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.RestoreWalletActivity"
             android:exported="false"
             android:label="@string/restore_progress_title"
             android:theme="@style/Theme.Numo"
@@ -373,7 +373,7 @@
         </activity>
         
         <!-- Withdraw Activities -->
-        <activity android:name="com.electricdreams.numo.feature.settings.WithdrawLightningActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.WithdrawLightningActivity"
             android:exported="false"
             android:label="Withdraw"
             android:theme="@style/Theme.Numo"
@@ -385,7 +385,7 @@
                 android:value=".feature.settings.MintsSettingsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.WithdrawMeltQuoteActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.WithdrawMeltQuoteActivity"
             android:exported="false"
             android:label="Confirm Withdrawal"
             android:theme="@style/Theme.Numo"
@@ -397,7 +397,7 @@
                 android:value=".feature.settings.WithdrawLightningActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.WithdrawSuccessActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.WithdrawSuccessActivity"
             android:exported="false"
             android:label="Withdrawal Complete"
             android:theme="@style/Theme.Numo"
@@ -410,7 +410,7 @@
         </activity>
         
         <!-- Item Management Activities -->
-        <activity android:name="com.electricdreams.numo.feature.items.ItemEntryActivity"
+        <activity android:name="io.refueler.merchant.feature.items.ItemEntryActivity"
             android:exported="false"
             android:label="Add Item"
             android:theme="@style/Theme.Numo"
@@ -423,7 +423,7 @@
                 android:value=".feature.items.ItemListActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.items.BarcodeScannerActivity"
+        <activity android:name="io.refueler.merchant.feature.items.BarcodeScannerActivity"
             android:exported="false"
             android:label="@string/barcode_scanner_title"
             android:theme="@style/Theme.Numo.Fullscreen"
@@ -435,13 +435,13 @@
         </activity>
         
         <!-- Reusable QR Code Scanner -->
-        <activity android:name="com.electricdreams.numo.feature.scanner.QRScannerActivity"
+        <activity android:name="io.refueler.merchant.feature.scanner.QRScannerActivity"
             android:exported="false"
             android:label="@string/qr_scanner_title"
             android:theme="@style/Theme.Numo.Fullscreen"
             android:screenOrientation="portrait" />
         
-        <activity android:name="com.electricdreams.numo.feature.items.ItemListActivity"
+        <activity android:name="io.refueler.merchant.feature.items.ItemListActivity"
             android:exported="false"
             android:label="Items"
             android:theme="@style/Theme.Numo"
@@ -453,7 +453,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.tips.TipsSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.tips.TipsSettingsActivity"
             android:exported="false"
             android:label="Tips"
             android:theme="@style/Theme.Numo"
@@ -465,7 +465,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.tips.TipSelectionActivity"
+        <activity android:name="io.refueler.merchant.feature.tips.TipSelectionActivity"
             android:exported="false"
             android:label="Add a Tip"
             android:theme="@style/Theme.Numo"
@@ -477,7 +477,7 @@
                 android:value=".ModernPOSActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.items.ItemSelectionActivity"
+        <activity android:name="io.refueler.merchant.feature.items.ItemSelectionActivity"
             android:exported="false"
             android:label="Checkout"
             android:theme="@style/Theme.Numo"
@@ -489,7 +489,7 @@
                 android:value=".ModernPOSActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.items.CheckoutScannerActivity"
+        <activity android:name="io.refueler.merchant.feature.items.CheckoutScannerActivity"
             android:exported="false"
             android:label="@string/checkout_scanner_title"
             android:theme="@style/Theme.Numo.Fullscreen"
@@ -500,7 +500,7 @@
                 android:value=".feature.items.ItemSelectionActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.baskets.SavedBasketsActivity"
+        <activity android:name="io.refueler.merchant.feature.baskets.SavedBasketsActivity"
             android:exported="false"
             android:label="@string/saved_baskets_title"
             android:theme="@style/Theme.Numo"
@@ -512,7 +512,7 @@
                 android:value=".feature.items.ItemSelectionActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.baskets.BasketArchiveActivity"
+        <activity android:name="io.refueler.merchant.feature.baskets.BasketArchiveActivity"
             android:exported="false"
             android:label="@string/basket_archive_title"
             android:theme="@style/Theme.Numo"
@@ -524,7 +524,7 @@
                 android:value=".feature.baskets.SavedBasketsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.baskets.BasketNamesSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.baskets.BasketNamesSettingsActivity"
             android:exported="false"
             android:label="@string/basket_names_settings_title"
             android:theme="@style/Theme.Numo"
@@ -536,7 +536,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
         
-        <activity android:name="com.electricdreams.numo.feature.settings.BtcPaySettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.settings.BtcPaySettingsActivity"
             android:exported="false"
             android:label="@string/btcpay_settings_title"
             android:theme="@style/Theme.Numo"
@@ -547,7 +547,7 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="com.electricdreams.numo.feature.autowithdraw.AutoWithdrawSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.autowithdraw.AutoWithdrawSettingsActivity"
             android:exported="false"
             android:label="@string/auto_withdraw_title"
             android:theme="@style/Theme.Numo"
@@ -575,7 +575,7 @@
         <!-- FileProvider for camera image capture -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.electricdreams.numo.fileprovider"
+            android:authorities="io.refueler.merchant.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

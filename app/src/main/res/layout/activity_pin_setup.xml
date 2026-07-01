@@ -97,7 +97,7 @@
         app:layout_constraintTop_toBottomOf="@id/title" />
 
     <!-- PIN Dots -->
-    <com.electricdreams.numo.feature.pin.PinDotsView
+    <io.refueler.merchant.feature.pin.PinDotsView
         android:id="@+id/pin_dots"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -135,7 +135,7 @@
         app:layout_constraintBottom_toTopOf="@id/pin_keypad" />
 
     <!-- Keypad - fixed 320dp height like POS -->
-    <com.electricdreams.numo.feature.pin.PinKeypadView
+    <io.refueler.merchant.feature.pin.PinKeypadView
         android:id="@+id/pin_keypad"
         android:layout_width="0dp"
         android:layout_height="320dp"

@@ -1,0 +1,81 @@
+package io.refueler.merchant.feature.settings
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import io.refueler.merchant.R
+import io.refueler.merchant.databinding.ActivityDeveloperSettingsBinding
+import io.refueler.merchant.ui.util.DialogHelper
+import io.refueler.merchant.feature.onboarding.OnboardingActivity
+import io.refueler.merchant.core.prefs.PreferenceStore
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class DeveloperSettingsActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityDeveloperSettingsBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityDeveloperSettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, insets.top, 0, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+
+        binding.topBar.onNavClick { finish() }
+
+        binding.restartOnboardingItem.setOnClickListener {
+            showRestartOnboardingDialog()
+        }
+
+        binding.errorLogsItem.setOnClickListener {
+            startActivity(Intent(this, ErrorLogsActivity::class.java))
+        }
+
+        binding.walletLogsItem.setOnClickListener {
+            startActivity(Intent(this, WalletLogsActivity::class.java))
+        }
+
+        binding.btcmapReset.setOnClickListener {
+            PreferenceStore.app(this).putBoolean("has_shown_btcmap_popup", false)
+            android.widget.Toast.makeText(this, "BTCMap Promo Reset", android.widget.Toast.LENGTH_SHORT).show()
+        }
+
+        // Delay Lightning Invoice
+        binding.delayLightningInvoiceSwitch.isChecked = DeveloperPrefs.isLightningInvoiceDelayed(this)
+
+        binding.delayLightningInvoiceSwitch.setOnCheckedChangeListener { _, isChecked ->
+            DeveloperPrefs.setLightningInvoiceDelayed(this, isChecked)
+        }
+
+        binding.delayLightningInvoiceItem.setOnClickListener {
+            binding.delayLightningInvoiceSwitch.toggle()
+        }
+    }
+
+    private fun showRestartOnboardingDialog() {
+        DialogHelper.showConfirmation(
+            context = this,
+            config = DialogHelper.ConfirmationConfig(
+                title = getString(R.string.developer_settings_restart_dialog_title),
+                message = getString(R.string.developer_settings_restart_dialog_message),
+                confirmText = getString(R.string.developer_settings_restart_dialog_positive),
+                isDestructive = false,
+                onConfirm = {
+                    // Clear onboarding completion status
+                    OnboardingActivity.setOnboardingComplete(this, false)
+
+                    // Navigate to onboarding
+                    val intent = Intent(this, OnboardingActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                }
+            )
+        )
+    }
+}

@@ -7,7 +7,7 @@
     android:fitsSystemWindows="true">
 
     <!-- Top App Bar -->
-    <com.electricdreams.numo.ui.components.NumoTopBar
+    <io.refueler.merchant.ui.components.NumoTopBar
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/top_bar_height"
@@ -152,7 +152,7 @@
                     android:text="@string/auto_withdraw_section_destination" />
 
                 <!-- Invoice Card -->
-                <com.electricdreams.numo.ui.components.WithdrawInvoiceCard
+                <io.refueler.merchant.ui.components.WithdrawInvoiceCard
                     android:id="@+id/invoice_card"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -193,7 +193,7 @@
                 </LinearLayout>
 
                 <!-- Address Card -->
-                <com.electricdreams.numo.ui.components.WithdrawAddressCard
+                <io.refueler.merchant.ui.components.WithdrawAddressCard
                     android:id="@+id/address_card"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

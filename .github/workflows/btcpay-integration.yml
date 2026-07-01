@@ -62,7 +62,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew testDebugUnitTest \
-            --tests "com.electricdreams.numo.core.payment.impl.BtcPayPaymentServiceIntegrationTest.*" \
+            --tests "io.refueler.merchant.core.payment.impl.BtcPayPaymentServiceIntegrationTest.*" \
             --no-daemon --console=plain
 
       - name: Dump logs on failure

@@ -6,7 +6,7 @@
     android:background="@color/color_bg_white">
 
     <!-- Top App Bar -->
-    <com.electricdreams.numo.ui.components.NumoTopBar
+    <io.refueler.merchant.ui.components.NumoTopBar
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/top_bar_height"
@@ -40,21 +40,21 @@
                 android:text="@string/settings_section_terminal"
                 android:textAppearance="@style/Text.SectionHeader" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/items_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:rowIcon="@drawable/ic_catalog"
                 app:rowTitle="@string/settings_item_items_title" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/tips_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:rowIcon="@drawable/ic_tip"
                 app:rowTitle="@string/settings_item_tips_title" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/basket_names_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -75,7 +75,7 @@
                 android:textAppearance="@style/Text.SectionHeader" />
 
             <!-- Default Payment Method -->
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/default_payment_method_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -84,28 +84,28 @@
                 app:rowShowChevron="false" />
 
             <!-- Fiat Currency -->
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/currency_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:rowIcon="@drawable/ic_switch_currency"
                 app:rowTitle="@string/settings_item_currency_title" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/mints_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:rowIcon="@drawable/ic_bank"
                 app:rowTitle="@string/settings_item_mints_title" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/webhooks_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:rowIcon="@drawable/ic_link"
                 app:rowTitle="@string/settings_item_webhooks_title" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/withdrawals_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -113,7 +113,7 @@
                 app:rowTitle="@string/settings_item_withdrawals_title" />
 
             <!-- BTCPay Server -->
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/btcpay_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -133,7 +133,7 @@
                 android:text="@string/settings_section_security"
                 android:textAppearance="@style/Text.SectionHeader" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/security_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -153,21 +153,21 @@
                 android:text="@string/settings_section_general"
                 android:textAppearance="@style/Text.SectionHeader" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/language_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:rowIcon="@drawable/ic_language"
                 app:rowTitle="@string/settings_item_language_title" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/theme_settings_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:rowIcon="@drawable/ic_dark_mode"
                 app:rowTitle="@string/settings_item_theme_title" />
 
-            <com.electricdreams.numo.ui.components.SettingsRowView
+            <io.refueler.merchant.ui.components.SettingsRowView
                 android:id="@+id/about_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -194,7 +194,7 @@
                     android:text="@string/settings_section_developer"
                     android:textAppearance="@style/Text.SectionHeader" />
 
-                <com.electricdreams.numo.ui.components.SettingsRowView
+                <io.refueler.merchant.ui.components.SettingsRowView
                     android:id="@+id/developer_settings_item"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

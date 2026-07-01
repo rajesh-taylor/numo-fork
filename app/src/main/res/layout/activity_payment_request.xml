@@ -397,7 +397,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <com.electricdreams.numo.ui.animation.NfcPaymentAnimationView
+        <io.refueler.merchant.ui.animation.NfcPaymentAnimationView
             android:id="@+id/nfc_animation_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

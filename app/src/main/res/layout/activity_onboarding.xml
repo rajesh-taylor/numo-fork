@@ -848,7 +848,7 @@
                 android:layout_weight="0.2" />
 
             <!-- Success Checkmark (animated, matches payment success style) -->
-            <com.electricdreams.numo.ui.animation.CheckmarkAnimationView
+            <io.refueler.merchant.ui.animation.CheckmarkAnimationView
                 android:id="@+id/success_checkmark"
                 android:layout_width="88dp"
                 android:layout_height="88dp"

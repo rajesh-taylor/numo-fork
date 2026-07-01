@@ -8,7 +8,7 @@
     android:background="@color/color_bg_white">
 
     <!-- Top Bar -->
-    <com.electricdreams.numo.ui.components.NumoTopBar
+    <io.refueler.merchant.ui.components.NumoTopBar
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/top_bar_height"

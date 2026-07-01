@@ -56,7 +56,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/top_bar" />
 
-    <com.electricdreams.numo.feature.insights.InsightsBarChartView
+    <io.refueler.merchant.feature.insights.InsightsBarChartView
         android:id="@+id/bar_chart"
         android:layout_width="match_parent"
         android:layout_height="120dp"
