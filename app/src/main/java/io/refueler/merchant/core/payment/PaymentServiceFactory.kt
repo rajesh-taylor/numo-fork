@@ -13,18 +13,24 @@ import io.refueler.merchant.core.util.MintManager
  * When `btcpay_enabled` is true **and** the BTCPay configuration is complete
  * the factory returns a [BTCPayPaymentService]; otherwise it falls back to
  * the [LocalPaymentService] that wraps the existing CDK wallet flow.
+ *
+ * Storage split:
+ *  - btcpay_enabled (non-sensitive toggle) → PreferenceStore.app()
+ *  - btcpay_api_key, btcpay_server_url, btcpay_store_id, btcpay_pos_app_id
+ *    (credentials) → PreferenceStore.secure()
  */
 object PaymentServiceFactory {
 
     fun create(context: Context): IPaymentService {
-        val prefs = PreferenceStore.app(context)
+        val appPrefs = PreferenceStore.app(context)
 
-        if (prefs.getBoolean("btcpay_enabled", false)) {
+        if (appPrefs.getBoolean("btcpay_enabled", false)) {
+            val securePrefs = PreferenceStore.secure(context)
             val config = BTCPayConfig(
-                serverUrl = prefs.getString("btcpay_server_url") ?: "",
-                apiKey = prefs.getString("btcpay_api_key") ?: "",
-                storeId = prefs.getString("btcpay_store_id") ?: "",
-                posAppId = prefs.getString("btcpay_pos_app_id")?.takeIf { it.isNotBlank() },
+                serverUrl = securePrefs.getString("btcpay_server_url") ?: "",
+                apiKey = securePrefs.getString("btcpay_api_key") ?: "",
+                storeId = securePrefs.getString("btcpay_store_id") ?: "",
+                posAppId = securePrefs.getString("btcpay_pos_app_id")?.takeIf { it.isNotBlank() },
             )
             if (config.serverUrl.isNotBlank()
                 && config.apiKey.isNotBlank()

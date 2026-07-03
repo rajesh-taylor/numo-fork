@@ -4,11 +4,17 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.refueler.merchant.core.prefs.EncryptedPreferenceStore
 import java.net.URI
 import java.util.Locale
 
 /**
  * Stores and validates configured webhook endpoints.
+ *
+ * The endpoints list (including authKey values) is persisted in
+ * EncryptedSharedPreferences so that webhook secrets are never written to disk
+ * in plaintext. The legacy plaintext "WebhookSettings" file is migrated and
+ * wiped on first access.
  */
 class WebhookSettingsManager private constructor(context: Context) {
 
@@ -27,7 +33,9 @@ class WebhookSettingsManager private constructor(context: Context) {
     }
 
     companion object {
-        private const val PREFS_NAME = "WebhookSettings"
+        private const val LEGACY_PREFS_NAME = "WebhookSettings"
+        private const val ENC_PREFS_NAME = "webhook_settings_enc"
+        private const val KEY_ALIAS = "_numo_webhook_master_key_"
         private const val KEY_ENDPOINTS = "endpoints"
 
         @Volatile
@@ -42,9 +50,16 @@ class WebhookSettingsManager private constructor(context: Context) {
         }
     }
 
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = EncryptedPreferenceStore.open(
+        context,
+        ENC_PREFS_NAME,
+        KEY_ALIAS,
+    )
     private val gson = Gson()
+
+    init {
+        migrateLegacyPlaintextStore(context)
+    }
 
     fun getEndpoints(): List<WebhookEndpointConfig> {
         val json = prefs.getString(KEY_ENDPOINTS, null) ?: return emptyList()
@@ -158,6 +173,20 @@ class WebhookSettingsManager private constructor(context: Context) {
 
     private fun saveEndpoints(endpoints: List<WebhookEndpointConfig>) {
         prefs.edit().putString(KEY_ENDPOINTS, gson.toJson(endpoints)).apply()
+    }
+
+    /**
+     * One-time migration: copy the endpoints JSON from the legacy plaintext file
+     * into the encrypted store, then wipe the plaintext file.
+     */
+    private fun migrateLegacyPlaintextStore(context: Context) {
+        val legacyPrefs = context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+        val legacyJson = legacyPrefs.getString(KEY_ENDPOINTS, null) ?: return
+        // Only migrate if the encrypted store doesn't already have data.
+        if (prefs.getString(KEY_ENDPOINTS, null) == null) {
+            prefs.edit().putString(KEY_ENDPOINTS, legacyJson).apply()
+        }
+        legacyPrefs.edit().clear().apply()
     }
 
     private fun normalizeAuthKey(rawAuthKey: String?): String? {

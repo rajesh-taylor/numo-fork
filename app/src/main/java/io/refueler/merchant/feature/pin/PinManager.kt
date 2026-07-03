@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import io.refueler.merchant.core.prefs.EncryptedPreferenceStore
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -13,19 +14,32 @@ import javax.crypto.spec.GCMParameterSpec
 
 /**
  * Manages PIN storage, validation, and lockout logic.
- * 
+ *
  * Security features:
- * - PIN is encrypted using Android Keystore
+ * - PIN ciphertext is encrypted using Android Keystore (AES-256-GCM)
+ * - The SharedPreferences file itself is also EncryptedSharedPreferences
+ *   (AES-256-GCM via Android Keystore) so ciphertext, IV and lockout counters
+ *   are never written to disk in plaintext.
  * - Maximum 5 failed attempts before 1-hour lockout
  * - Minimum 3-second delay between attempts
  * - PIN reset requires mnemonic verification
+ *
+ * Migration: the legacy plaintext "pin_prefs" file is migrated and wiped on
+ * first access.
  */
 class PinManager private constructor(private val context: Context) {
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = EncryptedPreferenceStore.open(
+        context,
+        ENC_PREFS_NAME,
+        PREFS_KEY_ALIAS,
+    )
 
     companion object {
-        private const val PREFS_NAME = "pin_prefs"
+        private const val LEGACY_PREFS_NAME = "pin_prefs"
+        private const val ENC_PREFS_NAME = "pin_prefs_enc"
+        private const val PREFS_KEY_ALIAS = "_numo_pin_prefs_master_key_"
+
         private const val KEY_ENCRYPTED_PIN = "encrypted_pin"
         private const val KEY_PIN_IV = "pin_iv"
         private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
@@ -52,19 +66,15 @@ class PinManager private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * Check if PIN protection is enabled.
-     */
+    init {
+        migrateLegacyPlaintextStore()
+    }
+
     fun isPinEnabled(): Boolean {
-        return prefs.getBoolean(KEY_PIN_ENABLED, false) && 
+        return prefs.getBoolean(KEY_PIN_ENABLED, false) &&
                prefs.getString(KEY_ENCRYPTED_PIN, null) != null
     }
 
-    /**
-     * Set a new PIN.
-     * @param pin The PIN to set (4-16 digits)
-     * @return true if PIN was set successfully
-     */
     fun setPin(pin: String): Boolean {
         if (!isValidPin(pin)) return false
 
@@ -91,12 +101,7 @@ class PinManager private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * Validate a PIN attempt.
-     * @return ValidationResult with success status and any error message
-     */
     fun validatePin(enteredPin: String): ValidationResult {
-        // Check lockout first
         val lockoutUntil = prefs.getLong(KEY_LOCKOUT_UNTIL, 0)
         if (System.currentTimeMillis() < lockoutUntil) {
             val remainingMs = lockoutUntil - System.currentTimeMillis()
@@ -109,7 +114,6 @@ class PinManager private constructor(private val context: Context) {
             )
         }
 
-        // Check minimum interval between attempts
         val lastAttemptTime = prefs.getLong(KEY_LAST_ATTEMPT_TIME, 0)
         val timeSinceLastAttempt = System.currentTimeMillis() - lastAttemptTime
         if (timeSinceLastAttempt < MIN_ATTEMPT_INTERVAL_MS && lastAttemptTime > 0) {
@@ -121,29 +125,24 @@ class PinManager private constructor(private val context: Context) {
             )
         }
 
-        // Update last attempt time
         prefs.edit().putLong(KEY_LAST_ATTEMPT_TIME, System.currentTimeMillis()).apply()
 
-        // Decrypt and compare PIN
         val storedPin = decryptPin()
         if (storedPin == null) {
             return ValidationResult(success = false, error = "PIN not configured properly.")
         }
 
         return if (enteredPin == storedPin) {
-            // Success - reset failed attempts
             prefs.edit()
                 .putInt(KEY_FAILED_ATTEMPTS, 0)
                 .putLong(KEY_LOCKOUT_UNTIL, 0)
                 .apply()
             ValidationResult(success = true)
         } else {
-            // Failed attempt
             val failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
             val attemptsRemaining = MAX_FAILED_ATTEMPTS - failedAttempts
 
             if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
-                // Lock out for 1 hour
                 prefs.edit()
                     .putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
                     .putLong(KEY_LOCKOUT_UNTIL, System.currentTimeMillis() + LOCKOUT_DURATION_MS)
@@ -165,9 +164,6 @@ class PinManager private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * Remove the PIN (disable PIN protection).
-     */
     fun removePin() {
         prefs.edit()
             .remove(KEY_ENCRYPTED_PIN)
@@ -177,7 +173,6 @@ class PinManager private constructor(private val context: Context) {
             .putLong(KEY_LOCKOUT_UNTIL, 0)
             .apply()
 
-        // Remove key from keystore
         try {
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
             keyStore.load(null)
@@ -187,9 +182,6 @@ class PinManager private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * Reset failed attempts (used after successful mnemonic verification).
-     */
     fun resetLockout() {
         prefs.edit()
             .putInt(KEY_FAILED_ATTEMPTS, 0)
@@ -198,32 +190,20 @@ class PinManager private constructor(private val context: Context) {
             .apply()
     }
 
-    /**
-     * Get remaining lockout time in milliseconds.
-     */
     fun getRemainingLockoutMs(): Long {
         val lockoutUntil = prefs.getLong(KEY_LOCKOUT_UNTIL, 0)
         val remaining = lockoutUntil - System.currentTimeMillis()
         return if (remaining > 0) remaining else 0
     }
 
-    /**
-     * Check if currently locked out.
-     */
     fun isLockedOut(): Boolean {
         return getRemainingLockoutMs() > 0
     }
 
-    /**
-     * Get number of failed attempts.
-     */
     fun getFailedAttempts(): Int {
         return prefs.getInt(KEY_FAILED_ATTEMPTS, 0)
     }
 
-    /**
-     * Check if a PIN string is valid format.
-     */
     fun isValidPin(pin: String): Boolean {
         return pin.length in MIN_PIN_LENGTH..MAX_PIN_LENGTH && pin.all { it.isDigit() }
     }
@@ -268,6 +248,29 @@ class PinManager private constructor(private val context: Context) {
 
         keyGenerator.init(keyGenParameterSpec)
         return keyGenerator.generateKey()
+    }
+
+    /**
+     * Migrate the legacy plaintext "pin_prefs" file into this encrypted store.
+     * Only migrates string values (encrypted PIN ciphertext, IV) and longs/ints
+     * (lockout counters). Wipes the plaintext file after migration.
+     */
+    private fun migrateLegacyPlaintextStore() {
+        val legacyPrefs = context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+        if (legacyPrefs.all.isEmpty()) return
+
+        val editor = prefs.edit()
+        legacyPrefs.all.forEach { (key, value) ->
+            when (value) {
+                is String -> editor.putString(key, value)
+                is Boolean -> editor.putBoolean(key, value)
+                is Int -> editor.putInt(key, value)
+                is Long -> editor.putLong(key, value)
+                else -> { /* drop unsupported types */ }
+            }
+        }
+        editor.apply()
+        legacyPrefs.edit().clear().apply()
     }
 
     data class ValidationResult(

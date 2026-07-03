@@ -134,6 +134,9 @@ dependencies {
     // QR code generation (ZXing core)
     implementation("com.google.zxing:core:3.5.3")
 
+    // Jetpack Security — EncryptedSharedPreferences (AES-256-GCM via Android Keystore)
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     // CDK Kotlin bindings
     implementation("org.cashudevkit:cdk-android:0.17.2-rc.1")
     
