@@ -10,11 +10,7 @@ import java.util.Locale
 
 /**
  * Stores and validates configured webhook endpoints.
- *
- * The endpoints list (including authKey values) is persisted in
- * EncryptedSharedPreferences so that webhook secrets are never written to disk
- * in plaintext. The legacy plaintext "WebhookSettings" file is migrated and
- * wiped on first access.
+ * Credentials are persisted in EncryptedSharedPreferences (AES-256-GCM).
  */
 class WebhookSettingsManager private constructor(context: Context) {
 
@@ -34,9 +30,9 @@ class WebhookSettingsManager private constructor(context: Context) {
 
     companion object {
         private const val LEGACY_PREFS_NAME = "WebhookSettings"
-        private const val ENC_PREFS_NAME = "webhook_settings_enc"
-        private const val KEY_ALIAS = "_numo_webhook_master_key_"
-        private const val KEY_ENDPOINTS = "endpoints"
+        private const val ENC_PREFS_NAME    = "webhook_settings_enc"
+        private const val KEY_ALIAS         = "refueler_webhook_key"
+        private const val KEY_ENDPOINTS     = "endpoints"
 
         @Volatile
         private var instance: WebhookSettingsManager? = null
@@ -50,16 +46,19 @@ class WebhookSettingsManager private constructor(context: Context) {
         }
     }
 
-    private val prefs: SharedPreferences = EncryptedPreferenceStore.open(
-        context,
-        ENC_PREFS_NAME,
-        KEY_ALIAS,
-    )
-    private val gson = Gson()
-
-    init {
-        migrateLegacyPlaintextStore(context)
+    private val prefs: SharedPreferences = run {
+        val enc = EncryptedPreferenceStore.open(context, ENC_PREFS_NAME, KEY_ALIAS)
+        // Migrate legacy plaintext once
+        val legacy = context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+        if (legacy.all.isNotEmpty()) {
+            val editor = enc.edit()
+            legacy.all.forEach { (k, v) -> if (v is String) editor.putString(k, v) }
+            editor.apply()
+            legacy.edit().clear().apply()
+        }
+        enc
     }
+    private val gson = Gson()
 
     fun getEndpoints(): List<WebhookEndpointConfig> {
         val json = prefs.getString(KEY_ENDPOINTS, null) ?: return emptyList()
@@ -83,15 +82,8 @@ class WebhookSettingsManager private constructor(context: Context) {
         val normalizedUrl = normalizeEndpointUrl(rawUrl) ?: return SaveResult.INVALID_URL
         val normalizedAuthKey = normalizeAuthKey(rawAuthKey)
         val endpoints = getEndpoints().toMutableList()
-        if (endpoints.any { it.url == normalizedUrl }) {
-            return SaveResult.DUPLICATE
-        }
-        endpoints.add(
-            WebhookEndpointConfig(
-                url = normalizedUrl,
-                authKey = normalizedAuthKey,
-            ),
-        )
+        if (endpoints.any { it.url == normalizedUrl }) return SaveResult.DUPLICATE
+        endpoints.add(WebhookEndpointConfig(url = normalizedUrl, authKey = normalizedAuthKey))
         saveEndpoints(endpoints)
         return SaveResult.SUCCESS
     }
@@ -102,54 +94,33 @@ class WebhookSettingsManager private constructor(context: Context) {
         newRawAuthKey: String?,
     ): SaveResult {
         val normalizedCurrent = normalizeEndpointUrl(currentEndpoint) ?: return SaveResult.NOT_FOUND
-        val normalizedNewUrl = normalizeEndpointUrl(newRawUrl) ?: return SaveResult.INVALID_URL
+        val normalizedNewUrl  = normalizeEndpointUrl(newRawUrl) ?: return SaveResult.INVALID_URL
         val normalizedNewAuthKey = normalizeAuthKey(newRawAuthKey)
         val endpoints = getEndpoints().toMutableList()
         val currentIndex = endpoints.indexOfFirst { it.url == normalizedCurrent }
-
-        if (currentIndex < 0) {
-            return SaveResult.NOT_FOUND
-        }
-
+        if (currentIndex < 0) return SaveResult.NOT_FOUND
         if (normalizedCurrent == normalizedNewUrl &&
             endpoints[currentIndex].authKey == normalizedNewAuthKey
-        ) {
-            return SaveResult.SUCCESS
-        }
-
+        ) return SaveResult.SUCCESS
         if (normalizedCurrent != normalizedNewUrl && endpoints.any { it.url == normalizedNewUrl }) {
             return SaveResult.DUPLICATE
         }
-
-        endpoints[currentIndex] = WebhookEndpointConfig(
-            url = normalizedNewUrl,
-            authKey = normalizedNewAuthKey,
-        )
+        endpoints[currentIndex] = WebhookEndpointConfig(url = normalizedNewUrl, authKey = normalizedNewAuthKey)
         saveEndpoints(endpoints)
         return SaveResult.SUCCESS
     }
 
     fun updateEndpoint(currentEndpoint: String, newRawUrl: String): SaveResult {
-        val existingEndpoint = getEndpoint(currentEndpoint) ?: return SaveResult.NOT_FOUND
-        return updateEndpoint(
-            currentEndpoint = currentEndpoint,
-            newRawUrl = newRawUrl,
-            newRawAuthKey = existingEndpoint.authKey,
-        )
+        val existing = getEndpoint(currentEndpoint) ?: return SaveResult.NOT_FOUND
+        return updateEndpoint(currentEndpoint, newRawUrl, existing.authKey)
     }
 
     fun updateAuthKey(endpointUrl: String, newRawAuthKey: String?): SaveResult {
         val normalizedUrl = normalizeEndpointUrl(endpointUrl) ?: return SaveResult.NOT_FOUND
         val endpoints = getEndpoints().toMutableList()
-        val endpointIndex = endpoints.indexOfFirst { it.url == normalizedUrl }
-
-        if (endpointIndex < 0) {
-            return SaveResult.NOT_FOUND
-        }
-
-        endpoints[endpointIndex] = endpoints[endpointIndex].copy(
-            authKey = normalizeAuthKey(newRawAuthKey),
-        )
+        val idx = endpoints.indexOfFirst { it.url == normalizedUrl }
+        if (idx < 0) return SaveResult.NOT_FOUND
+        endpoints[idx] = endpoints[idx].copy(authKey = normalizeAuthKey(newRawAuthKey))
         saveEndpoints(endpoints)
         return SaveResult.SUCCESS
     }
@@ -163,9 +134,7 @@ class WebhookSettingsManager private constructor(context: Context) {
         val normalized = normalizeEndpointUrl(endpoint) ?: return false
         val endpoints = getEndpoints().toMutableList()
         val removed = endpoints.removeAll { it.url == normalized }
-        if (removed) {
-            saveEndpoints(endpoints)
-        }
+        if (removed) saveEndpoints(endpoints)
         return removed
     }
 
@@ -175,20 +144,6 @@ class WebhookSettingsManager private constructor(context: Context) {
         prefs.edit().putString(KEY_ENDPOINTS, gson.toJson(endpoints)).apply()
     }
 
-    /**
-     * One-time migration: copy the endpoints JSON from the legacy plaintext file
-     * into the encrypted store, then wipe the plaintext file.
-     */
-    private fun migrateLegacyPlaintextStore(context: Context) {
-        val legacyPrefs = context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
-        val legacyJson = legacyPrefs.getString(KEY_ENDPOINTS, null) ?: return
-        // Only migrate if the encrypted store doesn't already have data.
-        if (prefs.getString(KEY_ENDPOINTS, null) == null) {
-            prefs.edit().putString(KEY_ENDPOINTS, legacyJson).apply()
-        }
-        legacyPrefs.edit().clear().apply()
-    }
-
     private fun normalizeAuthKey(rawAuthKey: String?): String? {
         val normalized = rawAuthKey?.trim().orEmpty()
         return if (normalized.isBlank()) null else normalized
@@ -196,30 +151,18 @@ class WebhookSettingsManager private constructor(context: Context) {
 
     private fun normalizeEndpointUrl(rawUrl: String): String? {
         var normalized = rawUrl.trim()
-        if (normalized.isEmpty()) {
-            return null
-        }
-
-        if (!normalized.contains("://")) {
-            normalized = "https://$normalized"
-        }
-
+        if (normalized.isEmpty()) return null
+        if (!normalized.contains("://")) normalized = "https://$normalized"
         return try {
             val uri = URI(normalized)
             val scheme = (uri.scheme ?: return null).lowercase(Locale.ROOT)
-            if (scheme != "http" && scheme != "https") {
-                return null
-            }
-
-            val host = (uri.host ?: return null).lowercase(Locale.ROOT)
+            if (scheme != "http" && scheme != "https") return null
+            val host     = (uri.host ?: return null).lowercase(Locale.ROOT)
             val userInfo = uri.userInfo?.let { "$it@" } ?: ""
-            val port = if (uri.port != -1) ":${uri.port}" else ""
-            val path = (uri.rawPath ?: "").let {
-                if (it == "/") "" else it
-            }
-            val query = uri.rawQuery?.let { "?$it" } ?: ""
+            val port     = if (uri.port != -1) ":${uri.port}" else ""
+            val path     = (uri.rawPath ?: "").let { if (it == "/") "" else it }
+            val query    = uri.rawQuery?.let { "?$it" } ?: ""
             val fragment = uri.rawFragment?.let { "#$it" } ?: ""
-
             "$scheme://$userInfo$host$port$path$query$fragment".removeSuffix("/")
         } catch (_: Exception) {
             null

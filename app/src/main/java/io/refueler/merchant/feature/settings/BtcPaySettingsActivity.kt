@@ -42,10 +42,7 @@ class BtcPaySettingsActivity : AppCompatActivity() {
     private var isLoadingSettings = false
 
     companion object {
-        // Non-sensitive toggle — stored in plaintext app prefs.
         private const val KEY_ENABLED = "btcpay_enabled"
-
-        // Credential keys — stored in encrypted secure prefs.
         private const val KEY_SERVER_URL = "btcpay_server_url"
         private const val KEY_API_KEY = "btcpay_api_key"
         private const val KEY_STORE_ID = "btcpay_store_id"
@@ -90,7 +87,6 @@ class BtcPaySettingsActivity : AppCompatActivity() {
         enableSwitch.isEnabled = canEnable
         if (!canEnable && enableSwitch.isChecked) {
             enableSwitch.isChecked = false
-            // KEY_ENABLED is non-sensitive — stays in app prefs.
             PreferenceStore.app(this).putBoolean(KEY_ENABLED, false)
         }
     }
@@ -127,6 +123,7 @@ class BtcPaySettingsActivity : AppCompatActivity() {
                 if (isLoadingSettings) return
                 connectionTestPassed = false
                 updateToggleEnabled()
+                // Clear POS selection — it belongs to a different server/store.
                 clearPosSelection()
             }
         }
@@ -145,38 +142,36 @@ class BtcPaySettingsActivity : AppCompatActivity() {
 
     private fun loadSettings() {
         isLoadingSettings = true
-        // Credentials come from the encrypted secure store.
-        val securePrefs = PreferenceStore.secure(this)
-        serverUrlInput.setText(securePrefs.getString(KEY_SERVER_URL, "") ?: "")
-        apiKeyInput.setText(securePrefs.getString(KEY_API_KEY, "") ?: "")
-        storeIdInput.setText(securePrefs.getString(KEY_STORE_ID, "") ?: "")
+        val prefs = PreferenceStore.app(this)
+        serverUrlInput.setText(prefs.getString(KEY_SERVER_URL, "") ?: "")
+        apiKeyInput.setText(prefs.getString(KEY_API_KEY, "") ?: "")
+        storeIdInput.setText(prefs.getString(KEY_STORE_ID, "") ?: "")
         isLoadingSettings = false
 
-        // The enabled toggle is non-sensitive and lives in the plaintext app store.
-        val alreadyEnabled = PreferenceStore.app(this).getBoolean(KEY_ENABLED, false)
+        val alreadyEnabled = prefs.getBoolean(KEY_ENABLED, false)
         if (alreadyEnabled && hasAllFields()) connectionTestPassed = true
         val canEnable = hasAllFields() && connectionTestPassed
         enableSwitch.isEnabled = canEnable
         enableSwitch.isChecked = canEnable && alreadyEnabled
 
-        val posAppName = securePrefs.getString(KEY_POS_APP_NAME, null)
+        val posAppName = prefs.getString(KEY_POS_APP_NAME, null)
         posAppSubtitle.text = posAppName ?: getString(R.string.btcpay_pos_app_subtitle_none)
 
         updatePosVisibility()
     }
 
     private fun saveTextFields() {
-        val securePrefs = PreferenceStore.secure(this)
-        securePrefs.putString(KEY_SERVER_URL, serverUrlInput.text.toString().trim())
-        securePrefs.putString(KEY_API_KEY, apiKeyInput.text.toString().trim())
-        securePrefs.putString(KEY_STORE_ID, storeIdInput.text.toString().trim())
+        val prefs = PreferenceStore.app(this)
+        prefs.putString(KEY_SERVER_URL, serverUrlInput.text.toString().trim())
+        prefs.putString(KEY_API_KEY, apiKeyInput.text.toString().trim())
+        prefs.putString(KEY_STORE_ID, storeIdInput.text.toString().trim())
     }
 
     private fun clearPosSelection() {
-        val securePrefs = PreferenceStore.secure(this)
-        val hadSelection = !securePrefs.getString(KEY_POS_APP_ID, null).isNullOrBlank()
-        securePrefs.remove(KEY_POS_APP_ID)
-        securePrefs.remove(KEY_POS_APP_NAME)
+        val prefs = PreferenceStore.app(this)
+        val hadSelection = !prefs.getString(KEY_POS_APP_ID, null).isNullOrBlank()
+        prefs.remove(KEY_POS_APP_ID)
+        prefs.remove(KEY_POS_APP_NAME)
         if (hadSelection) {
             posAppSubtitle.text = getString(R.string.btcpay_pos_app_subtitle_none)
         }
@@ -221,8 +216,8 @@ class BtcPaySettingsActivity : AppCompatActivity() {
             return
         }
 
-        val securePrefs = PreferenceStore.secure(this)
-        val currentId = securePrefs.getString(KEY_POS_APP_ID, null)
+        val prefs = PreferenceStore.app(this)
+        val currentId = prefs.getString(KEY_POS_APP_ID, null)
 
         val options = listOf(getString(R.string.btcpay_pos_none_option)) + apps.map { it.name }
         val currentIndex = apps.indexOfFirst { it.id == currentId }.let { if (it < 0) 0 else it + 1 }
@@ -238,8 +233,8 @@ class BtcPaySettingsActivity : AppCompatActivity() {
                     clearPosSelection()
                 } else {
                     val app = apps[selectedIndex - 1]
-                    securePrefs.putString(KEY_POS_APP_ID, app.id)
-                    securePrefs.putString(KEY_POS_APP_NAME, app.name)
+                    prefs.putString(KEY_POS_APP_ID, app.id)
+                    prefs.putString(KEY_POS_APP_NAME, app.name)
                     posAppSubtitle.text = app.name
                 }
             }
