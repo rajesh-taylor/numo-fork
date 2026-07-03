@@ -1,5 +1,6 @@
 package io.refueler.merchant.core.util
 
+import io.refueler.merchant.core.cashu.EventModeManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
@@ -13,7 +14,7 @@ import java.util.Locale
  * Manages allowed mints for Cashu tokens.
  */
 class MintManager private constructor(context: Context) {
-
+private val eventModeManager = EventModeManager(context)
     interface MintChangeListener {
         fun onMintsChanged(newMints: List<String>)
     }
@@ -513,6 +514,9 @@ class MintManager private constructor(context: Context) {
      * This is called automatically when the mint list changes.
      */
     private fun triggerNostrMintBackup() {
+        if (eventModeManager.isEventMode()) {
+            return
+        }
         val mnemonic = CashuWalletManager.getMnemonic()
         if (mnemonic.isNullOrBlank()) {
             Log.w(TAG, "Cannot backup mints to Nostr: wallet mnemonic not available")
