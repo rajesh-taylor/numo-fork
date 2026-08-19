@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import io.refueler.merchant.R
 import io.refueler.merchant.core.prefs.EncryptedPreferenceStore
-import io.refueler.merchant.feature.pos.ModernPOSActivity
+import io.refueler.merchant.ModernPOSActivity
 import io.refueler.merchant.feature.provisioning.RefuelerProvisioningActivity.Companion.KEY_LOCAL_GRANT_UNTIL
 import io.refueler.merchant.feature.provisioning.RefuelerProvisioningActivity.Companion.KEY_SESSION_JWT
 import io.refueler.merchant.feature.provisioning.RefuelerProvisioningActivity.Companion.KEY_SUPABASE_URL
