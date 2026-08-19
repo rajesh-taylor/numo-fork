@@ -232,4 +232,14 @@ class PaymentsHistoryActivity : AppCompatActivity() {
             }
         }
     }
+
+    companion object {
+        /**
+         * Stub — legacy callers (PaymentFailureActivity, PaymentReceivedActivity)
+         * referenced this static method. Returns empty list; those activities
+         * will be removed in the same commit.
+         */
+        @JvmStatic
+        fun getPaymentHistory(context: android.content.Context): List<Any> = emptyList()
+    }
 }
