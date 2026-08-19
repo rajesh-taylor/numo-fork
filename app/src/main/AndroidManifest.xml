@@ -441,6 +441,17 @@
                 android:value=".feature.items.ItemListActivity" />
         </activity>
 
+<activity android:name="io.refueler.merchant.feature.order.FloorOrderActivity"
+    android:exported="false"
+    android:theme="@style/Theme.Refueler"
+    android:screenOrientation="portrait"
+    android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+    android:parentActivityName=".ModernPOSActivity">
+    <meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".ModernPOSActivity" />
+</activity>
+
         <activity android:name="io.refueler.merchant.feature.items.BarcodeScannerActivity"
             android:exported="false"
             android:label="@string/barcode_scanner_title"

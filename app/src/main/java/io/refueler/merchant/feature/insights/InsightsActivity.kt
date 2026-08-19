@@ -1,41 +1,49 @@
 package io.refueler.merchant.feature.insights
 
-import android.animation.ValueAnimator
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import io.refueler.merchant.R
-import io.refueler.merchant.core.model.Amount
-import io.refueler.merchant.core.util.BalanceRefreshBroadcast
+import io.refueler.merchant.core.data.repository.MerchantOrder
+import io.refueler.merchant.core.data.repository.MerchantOrdersRepository
+import io.refueler.merchant.core.network.SupabaseException
 import io.refueler.merchant.databinding.ActivityInsightsBinding
 import io.refueler.merchant.feature.enableEdgeToEdgeWithPill
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Insights / analytics screen.
+ *
+ * NumoPay-C: data source replaced with merchant_orders via MerchantOrdersRepository.
+ * Removed: CashuWalletManager, BalanceRefreshBroadcast, InsightsRepository (Cashu),
+ * InsightsData, BucketTotal, InsightsRange, InsightsTransactionAdapter (Cashu).
+ *
+ * Replaced with: simple day/week/month aggregation over MerchantOrder list,
+ * MerchantOrderAdapter for the recycler, GBP totals (sats secondary where available).
+ *
+ * The ActivityInsightsBinding layout is retained — we bind the same view IDs
+ * from the existing layout. Chart (binding.barChart) is hidden in v1; it can
+ * be re-enabled when a Supabase-native bar chart component is ready.
+ */
 class InsightsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityInsightsBinding
-    private lateinit var adapter: InsightsTransactionAdapter
 
-    private var unit: DisplayUnit = DisplayUnit.FIAT
-    private var range: InsightsRange = InsightsRange.DAY
-    private var data: InsightsData? = null
-    private var selectedIndex: Int? = null
-
-    private var balanceReceiver: BroadcastReceiver? = null
-
-    private var primaryAnimator: ValueAnimator? = null
-    private var lastPrimarySats: Long = 0L
-    private var lastPrimaryFiatMinor: Long = 0L
+    private var range: Range = Range.DAY
+    private var orders: List<MerchantOrder> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,204 +52,194 @@ class InsightsActivity : AppCompatActivity() {
 
         enableEdgeToEdgeWithPill(this, lightNavIcons = true)
 
-        unit = DisplayUnit.fromKey(prefs().getString(KEY_UNIT, null))
-        range = InsightsRange.fromKey(prefs().getString(KEY_RANGE, null))
-
         binding.backButton.setOnClickListener { finish() }
-        binding.viewOptionsButton.setOnClickListener { openViewOptions() }
 
-        adapter = InsightsTransactionAdapter(unit, Amount.Currency.USD)
+        // Range selector — reuse existing viewOptionsButton if present
+        binding.viewOptionsButton?.setOnClickListener { cycleRange() }
+
         binding.transactionsRecycler.layoutManager = LinearLayoutManager(this)
-        binding.transactionsRecycler.adapter = adapter
+        binding.transactionsRecycler.adapter = MerchantOrderAdapter(emptyList())
 
-        binding.barChart.setOnSelectionChanged { idx ->
-            selectedIndex = idx
-            renderForSelection(animate = true)
-        }
+        // Hide bar chart — not wired to Supabase data in v1
+        binding.barChart?.visibility = View.GONE
 
-        binding.statLabel.text = getString(periodLabelRes(range))
-
-        refresh(animate = false)
+        refresh()
     }
 
     override fun onResume() {
         super.onResume()
-        balanceReceiver = BalanceRefreshBroadcast.createReceiver { refresh(animate = true) }
-        BalanceRefreshBroadcast.register(this, balanceReceiver!!)
-        refresh(animate = false)
+        refresh()
     }
 
-    override fun onPause() {
-        super.onPause()
-        balanceReceiver?.let {
-            BalanceRefreshBroadcast.unregister(this, it)
-            balanceReceiver = null
-        }
-    }
+    // ------------------------------------------------------------------
+    // Data loading
+    // ------------------------------------------------------------------
 
-    private fun refresh(animate: Boolean) {
+    private fun refresh() {
         lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                InsightsRepository.compute(this@InsightsActivity, range)
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    MerchantOrdersRepository.fetchConfirmed(this@InsightsActivity)
+                }
+                orders = result
+                render()
+            } catch (e: Exception) {
+                val msg = if (e is SupabaseException) e.responseBody else e.message ?: "Error"
+                showError(getString(R.string.history_load_error, msg))
             }
-            data = result
-            binding.barChart.setData(result.buckets)
-            binding.barChart.setSelectedIndex(selectedIndex)
-            renderForSelection(animate)
         }
     }
 
-    private fun renderForSelection(animate: Boolean) {
-        val d = data ?: return
-        val isEmptyPeriod = d.periodTxCount == 0
+    // ------------------------------------------------------------------
+    // Rendering
+    // ------------------------------------------------------------------
 
-        if (isEmptyPeriod && selectedIndex == null) {
-            renderEmpty(d)
-            return
-        }
+    private fun render() {
+        val filtered = filterForRange(orders, range)
 
-        binding.statPair.visibility = View.VISIBLE
-        binding.transactionsRecycler.visibility = View.VISIBLE
-        binding.emptyText.visibility = View.GONE
+        val totalSats = filtered.sumOf { it.settledSats ?: 0L }
+        val totalGbp = filtered.sumOf { it.amountGbp ?: 0.0 }
+        val count = filtered.size
 
-        val sel = selectedIndex
-        if (sel == null) {
-            binding.statLabel.text = getString(periodLabelRes(d.range))
-            updatePrimary(d.periodTotalSats, d.periodTotalFiatMinor, d.fiatCurrency, animate)
-            binding.statSecondary.visibility = View.GONE
-            adapter.submit(d.transactions, unit, d.fiatCurrency)
+        // Primary stat — total GBP
+        binding.statLabel?.text = rangeLabel()
+        binding.primaryValue?.text = formatGbp(totalGbp)
+
+        // Secondary stat — sats received (Lightning only)
+        val lightningTotal = filtered.filter { it.isLightning }.sumOf { it.settledSats ?: 0L }
+        if (lightningTotal > 0L) {
+            binding.statSecondaryValue?.text = "${"%,d".format(lightningTotal)} sats"
+            binding.statSecondary?.visibility = View.VISIBLE
         } else {
-            val bucket = d.buckets[sel]
-            val bucketLabel = formatSelectedBucketLabel(d.range, bucket)
-            binding.statLabel.text = bucketLabel
-            updatePrimary(bucket.totalSats, bucket.totalFiatMinor, d.fiatCurrency, animate)
-            binding.statSecondary.visibility = View.VISIBLE
-            binding.statSecondaryLabel.visibility = View.GONE
-            binding.statSecondaryValue.text = if (bucket.transactionCount == 1) {
-                getString(R.string.insights_day_count_one)
-            } else {
-                getString(R.string.insights_day_count_other, bucket.transactionCount)
-            }
+            binding.statSecondary?.visibility = View.GONE
+        }
 
-            val slice = d.transactions.filter {
-                it.date.time in bucket.startMillis until bucket.endExclusiveMillis
-            }
-            adapter.submit(slice, unit, d.fiatCurrency)
+        // Order count
+        binding.statPair?.visibility = View.VISIBLE
 
-            if (slice.isEmpty()) {
-                binding.transactionsRecycler.visibility = View.GONE
-                binding.emptyText.visibility = View.VISIBLE
-                binding.emptyText.text = getString(R.string.insights_empty_day, bucketLabel)
-            }
+        if (filtered.isEmpty()) {
+            binding.emptyText?.text = getString(R.string.history_empty)
+            binding.emptyText?.visibility = View.VISIBLE
+            binding.transactionsRecycler.visibility = View.GONE
+        } else {
+            binding.emptyText?.visibility = View.GONE
+            binding.transactionsRecycler.visibility = View.VISIBLE
+            (binding.transactionsRecycler.adapter as MerchantOrderAdapter).update(filtered)
         }
     }
 
-    private fun renderEmpty(d: InsightsData) {
-        binding.statPair.visibility = View.VISIBLE
+    private fun showError(message: String) {
+        binding.emptyText?.text = message
+        binding.emptyText?.visibility = View.VISIBLE
         binding.transactionsRecycler.visibility = View.GONE
-        binding.emptyText.visibility = View.VISIBLE
-        binding.emptyText.text = getString(R.string.insights_empty_hint)
-
-        binding.statLabel.text = getString(periodLabelRes(d.range))
-        binding.statValue.text = getString(R.string.insights_empty_headline)
-        binding.statSecondary.visibility = View.GONE
-        primaryAnimator?.cancel()
-        lastPrimarySats = 0L
-        lastPrimaryFiatMinor = 0L
     }
 
-    private fun updatePrimary(sats: Long, fiatMinor: Long, fiat: Amount.Currency, animate: Boolean) {
-        if (animate && (sats != lastPrimarySats || fiatMinor != lastPrimaryFiatMinor)) {
-            primaryAnimator?.cancel()
-            primaryAnimator = animatePair(lastPrimarySats, sats, lastPrimaryFiatMinor, fiatMinor) { s, f ->
-                binding.statValue.text = InsightsFormatter.format(unit, s, f, fiat)
+    // ------------------------------------------------------------------
+    // Range helpers
+    // ------------------------------------------------------------------
+
+    enum class Range { DAY, WEEK, MONTH }
+
+    private fun cycleRange() {
+        range = when (range) {
+            Range.DAY -> Range.WEEK
+            Range.WEEK -> Range.MONTH
+            Range.MONTH -> Range.DAY
+        }
+        render()
+    }
+
+    private fun rangeLabel(): String = when (range) {
+        Range.DAY -> "Today"
+        Range.WEEK -> "This week"
+        Range.MONTH -> "This month"
+    }
+
+    private fun filterForRange(all: List<MerchantOrder>, r: Range): List<MerchantOrder> {
+        val cal = Calendar.getInstance()
+        val now = cal.time
+        val start: Date = when (r) {
+            Range.DAY -> {
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.time
             }
-        } else {
-            primaryAnimator?.cancel()
-            binding.statValue.text = InsightsFormatter.format(unit, sats, fiatMinor, fiat)
+            Range.WEEK -> {
+                cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.time
+            }
+            Range.MONTH -> {
+                cal.set(Calendar.DAY_OF_MONTH, 1)
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.time
+            }
         }
-        lastPrimarySats = sats
-        lastPrimaryFiatMinor = fiatMinor
+        return all.filter { it.date >= start && it.date <= now }
     }
 
-    private fun animatePair(
-        fromSats: Long, toSats: Long,
-        fromFiat: Long, toFiat: Long,
-        onUpdate: (Long, Long) -> Unit,
-    ): ValueAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-        duration = 350L
-        interpolator = android.view.animation.PathInterpolator(0.16f, 1f, 0.3f, 1f)
-        addUpdateListener { anim ->
-            val t = anim.animatedValue as Float
-            val s = (fromSats + (toSats - fromSats) * t).toLong()
-            val f = (fromFiat + (toFiat - fromFiat) * t).toLong()
-            onUpdate(s, f)
+    // ------------------------------------------------------------------
+    // Formatting
+    // ------------------------------------------------------------------
+
+    private fun formatGbp(amount: Double): String =
+        NumberFormat.getCurrencyInstance(Locale.UK).format(amount)
+
+    // ------------------------------------------------------------------
+    // Adapter
+    // ------------------------------------------------------------------
+
+    inner class MerchantOrderAdapter(private var items: List<MerchantOrder>) :
+        RecyclerView.Adapter<MerchantOrderAdapter.VH>() {
+
+        fun update(newItems: List<MerchantOrder>) {
+            items = newItems
+            notifyDataSetChanged()
         }
-        start()
-    }
 
-    private fun openViewOptions() {
-        ViewOptionsSheet().apply {
-            configure(
-                currentUnit = unit,
-                currentRange = range,
-                onUnitChanged = { newUnit ->
-                    if (newUnit == unit) return@configure
-                    unit = newUnit
-                    prefs().edit().putString(KEY_UNIT, newUnit.toKey()).apply()
-                    renderForSelection(animate = false)
-                },
-                onRangeChanged = { newRange ->
-                    if (newRange == range) return@configure
-                    range = newRange
-                    selectedIndex = null
-                    prefs().edit().putString(KEY_RANGE, newRange.toKey()).apply()
-                    refresh(animate = true)
-                },
-            )
-        }.show(supportFragmentManager, ViewOptionsSheet.TAG)
-    }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_history_entry, parent, false)
+            return VH(view)
+        }
 
-    private fun periodLabelRes(range: InsightsRange): Int = when (range) {
-        InsightsRange.DAY -> R.string.insights_this_week
-        InsightsRange.WEEK -> R.string.insights_last_7_weeks
-        InsightsRange.MONTH -> R.string.insights_last_7_months
-    }
+        override fun getItemCount() = items.size
+        override fun onBindViewHolder(holder: VH, position: Int) =
+            holder.bind(items[position])
 
-    private fun formatSelectedBucketLabel(range: InsightsRange, bucket: BucketTotal): String {
-        val locale = Locale.getDefault()
-        val start = Date(bucket.startMillis)
-        return when (range) {
-            InsightsRange.DAY -> SimpleDateFormat("EEEE", locale).format(start)
-            InsightsRange.WEEK -> {
-                val endInclusive = Date(bucket.endExclusiveMillis - 1)
-                val startCal = Calendar.getInstance(locale).apply { time = start }
-                val endCal = Calendar.getInstance(locale).apply { time = endInclusive }
-                val mmmD = SimpleDateFormat("MMM d", locale)
-                if (startCal.get(Calendar.MONTH) == endCal.get(Calendar.MONTH)) {
-                    val dayOnly = SimpleDateFormat("d", locale)
-                    "${mmmD.format(start)} – ${dayOnly.format(endInclusive)}"
-                } else {
-                    "${mmmD.format(start)} – ${mmmD.format(endInclusive)}"
+        inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+            private val tvLabel: TextView? = view.findViewById(R.id.entry_label)
+            private val tvAmount: TextView? = view.findViewById(R.id.entry_amount)
+            private val tvDate: TextView? = view.findViewById(R.id.entry_date)
+            private val tvOrigin: TextView? = view.findViewById(R.id.entry_secondary)
+
+            fun bind(order: MerchantOrder) {
+                tvLabel?.text = order.orderCode
+
+                val amountText = when {
+                    order.isLightning && (order.settledSats ?: 0L) > 0L ->
+                        "${"%,d".format(order.settledSats)} sats"
+                    order.amountGbp != null ->
+                        formatGbp(order.amountGbp)
+                    else -> "—"
                 }
-            }
-            InsightsRange.MONTH -> {
-                val startCal = Calendar.getInstance(locale).apply { time = start }
-                val nowYear = Calendar.getInstance(locale).get(Calendar.YEAR)
-                if (startCal.get(Calendar.YEAR) == nowYear) {
-                    SimpleDateFormat("MMMM", locale).format(start)
-                } else {
-                    SimpleDateFormat("MMMM yyyy", locale).format(start)
+                tvAmount?.text = amountText
+
+                tvDate?.text = SimpleDateFormat("HH:mm  dd MMM", Locale.UK).format(order.date)
+
+                val originLabel = when {
+                    order.isFloor && order.isCash -> "Floor · Cash"
+                    order.isFloor && order.isCard -> "Floor · Card"
+                    order.isFloor -> "Floor · Lightning"
+                    else -> "Pre-order"
                 }
+                tvOrigin?.text = originLabel
             }
         }
-    }
-
-    private fun prefs() = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
-    companion object {
-        private const val PREFS_NAME = "InsightsPrefs"
-        private const val KEY_UNIT = "display_unit"
-        private const val KEY_RANGE = "date_range"
     }
 }

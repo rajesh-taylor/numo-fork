@@ -4,8 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/color_primary_green"
+    android:background="@color/refueler_bg"
     tools:context=".ModernPOSActivity">
+
+    <!--
+        Offline mode banner — shown when shift-start PIN was verified via
+        local grant (server unreachable). Hidden by default.
+        ModernPOSActivity.showOfflineBanner() sets visibility to VISIBLE.
+    -->
+    <TextView
+        android:id="@+id/offline_mode_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#CC1A1A1A"
+        android:gravity="center"
+        android:paddingVertical="6dp"
+        android:text="@string/offline_mode_banner_text"
+        android:textColor="@color/refueler_gold"
+        android:textSize="12sp"
+        android:textStyle="normal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Top Navigation Bar -->
     <LinearLayout
@@ -16,7 +37,7 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="@dimen/space_s"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/offline_mode_banner">
 
         <!-- Catalog (Item List) -->
         <ImageButton
@@ -26,7 +47,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/pos_nav_catalog_content_description"
             android:src="@drawable/ic_catalog"
-            app:tint="@color/color_bg_white" />
+            app:tint="@color/refueler_fg" />
 
         <!-- Spacer -->
         <View
@@ -42,7 +63,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/pos_nav_history_content_description"
             android:src="@drawable/ic_history"
-            app:tint="@color/color_bg_white" />
+            app:tint="@color/refueler_fg" />
 
         <!-- Settings -->
         <ImageButton
@@ -52,7 +73,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/pos_nav_settings_content_description"
             android:src="@drawable/ic_settings"
-            app:tint="@color/color_bg_white" />
+            app:tint="@color/refueler_fg" />
 
         <!-- More Options (Hidden) -->
         <ImageButton
@@ -63,7 +84,7 @@
             android:contentDescription="@string/pos_nav_more_options_content_description"
             android:src="@drawable/ic_more_vert"
             android:visibility="gone"
-            app:tint="@color/color_bg_white" />
+            app:tint="@color/refueler_fg" />
 
     </LinearLayout>
 
@@ -90,13 +111,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_xl"
                 android:layout_marginEnd="@dimen/space_xl"
-            android:layout_marginTop="@dimen/space_2xl"
-            android:layout_marginBottom="@dimen/space_s"
-            android:gravity="center"
-            android:text="@string/pos_error_amount_required"
-            android:textColor="@color/color_bg_white"
-            android:textSize="16sp"
-            android:visibility="gone"
+                android:layout_marginTop="@dimen/space_2xl"
+                android:layout_marginBottom="@dimen/space_s"
+                android:gravity="center"
+                android:text="@string/pos_error_amount_required"
+                android:textColor="@color/refueler_fg"
+                android:textSize="16sp"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -108,12 +129,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_xl"
                 android:layout_marginEnd="@dimen/space_xl"
-            android:layout_marginTop="@dimen/space_s"
-            android:layout_marginBottom="@dimen/space_s"
-            android:gravity="center"
-            android:text="@string/pos_amount_placeholder_main"
-            android:textColor="@color/color_bg_white"
-            android:textSize="64sp"
+                android:layout_marginTop="@dimen/space_s"
+                android:layout_marginBottom="@dimen/space_s"
+                android:gravity="center"
+                android:text="@string/pos_amount_placeholder_main"
+                android:textColor="@color/refueler_fg"
+                android:textSize="64sp"
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:singleLine="true"
@@ -128,7 +149,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/error_message"
                 app:layout_constraintVertical_chainStyle="packed" />
 
-            <!-- Secondary Amount Display with Swap Icon -->
+            <!-- Secondary Amount Display (sats equivalent) -->
             <LinearLayout
                 android:id="@+id/secondary_amount_container"
                 android:layout_width="wrap_content"
@@ -150,7 +171,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/pos_amount_placeholder_secondary"
-                    android:textColor="@color/color_bg_white"
+                    android:textColor="@color/refueler_fg_muted"
                     android:textSize="22sp"
                     android:textStyle="normal" />
 
@@ -165,7 +186,7 @@
                     android:focusable="false"
                     android:rotation="90"
                     android:src="@drawable/ic_switch_currency"
-                    app:tint="@color/color_bg_white" />
+                    app:tint="@color/refueler_fg_muted" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -204,7 +225,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:indeterminate="true"
-            android:indeterminateTint="@color/color_bg_white"
+            android:indeterminateTint="@color/refueler_fg"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/submit_button"
             app:layout_constraintEnd_toEndOf="@id/submit_button"
@@ -212,15 +233,5 @@
             app:layout_constraintTop_toTopOf="@id/submit_button" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Auto-Withdraw Progress Indicator (floating below the top navigation bar) -->
-    <include
-        android:id="@+id/auto_withdraw_progress"
-        layout="@layout/auto_withdraw_progress_indicator"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/top_navigation"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
