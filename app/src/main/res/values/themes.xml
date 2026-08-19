@@ -134,4 +134,10 @@
 
 <style name="Widget.Numo.BottomSheet" parent="Widget.MaterialComponents.BottomSheet" />
 
+    <!-- Theme.Numo dot-notation aliases — manifest + BottomSheet fragments -->
+    <style name="Theme.Numo" parent="Theme.Refueler" />
+    <style name="Theme.Numo.Fullscreen" parent="Theme.Refueler.Fullscreen" />
+    <style name="Theme.Numo.BottomSheet" parent="Theme.Refueler.BottomSheet" />
+    <style name="Theme.Numo.Splash" parent="Theme.Refueler.Splash" />
+    <style name="Theme_Numo_BottomSheet" parent="Theme.Refueler.BottomSheet" />
 </resources>
