@@ -19,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.gridlayout.widget.GridLayout
 import io.refueler.merchant.R
-import io.refueler.merchant.core.cashu.CashuWalletManager
 import io.refueler.merchant.feature.enableEdgeToEdgeWithPill
 import io.refueler.merchant.ui.util.DialogHelper
 import com.google.android.material.button.MaterialButton
@@ -189,7 +188,7 @@ class PinResetActivity : AppCompatActivity() {
         val allValid = words.all { it.isBlank() || it.matches(Regex("^[a-z]+$")) }
 
         // Check if matches stored mnemonic
-        val storedMnemonic = CashuWalletManager.getMnemonic()
+        val storedMnemonic: String? = null // Cashu mnemonic removed
         val enteredMnemonic = words.joinToString(" ")
         val matches = storedMnemonic != null && enteredMnemonic == storedMnemonic
 

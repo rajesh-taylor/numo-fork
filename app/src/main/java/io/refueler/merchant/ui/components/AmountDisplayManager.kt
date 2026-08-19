@@ -7,7 +7,6 @@ import io.refueler.merchant.R
 import io.refueler.merchant.ui.util.shake
 import android.widget.Button
 import android.widget.TextView
-import io.refueler.merchant.core.cashu.CashuWalletManager
 import android.widget.Toast
 import io.refueler.merchant.core.model.Amount
 import io.refueler.merchant.core.prefs.PreferenceStore
@@ -35,14 +34,14 @@ class AmountDisplayManager(
     var requestedAmount: Long = 0
         private set
 
-    private var currentMintLimits: CashuWalletManager.MintLimits? = null
+    private var currentMintLimits: Any? = null // MintLimits removed
 
-    fun setMintLimits(limits: CashuWalletManager.MintLimits?) {
+    fun setMintLimits(limits: Any?) {
         Log.d("AmountDisplayManager", "setMintLimits called with: $limits")
         currentMintLimits = limits
     }
     
-    fun getCurrentMintLimits(): CashuWalletManager.MintLimits? {
+    fun getCurrentMintLimits(): Any? {
         return currentMintLimits
     }
 
@@ -186,7 +185,7 @@ class AmountDisplayManager(
         // Update submit button
         if (satsValue > 0) {
             requestedAmount = satsValue
-            val isReady = CashuWalletManager.walletState.value == io.refueler.merchant.core.cashu.WalletState.READY
+            val isReady = true // Wallet-readiness removed
             val isNetworkAvailable = NetworkUtils.isNetworkAvailable(context)
             if (isReady) {
                 val limitCheck = MintLimitChecker.checkMintLimits(satsValue, currentMintLimits)
@@ -212,7 +211,7 @@ class AmountDisplayManager(
             }
         } else {
             requestedAmount = 0
-            val isReady = CashuWalletManager.walletState.value == io.refueler.merchant.core.cashu.WalletState.READY
+            val isReady = true // Wallet-readiness removed
             val isNetworkAvailable = NetworkUtils.isNetworkAvailable(context)
             if (isReady) {
                 submitButton.text = context.getString(R.string.pos_charge_button)
