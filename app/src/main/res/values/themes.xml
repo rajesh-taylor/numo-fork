@@ -127,11 +127,6 @@
     </style>
 
     <!-- Legacy Theme.Numo aliases — keeps existing activities compiling without rename -->
-    <style name="Theme.Numo" parent="Theme.Refueler" />
-    <style name="Theme.Numo.Splash" parent="Theme.Refueler.Splash" />
-    <style name="Theme.Numo.Fullscreen" parent="Theme.Refueler.Fullscreen" />
-    <style name="Theme.Numo.Dialog" parent="Theme.Refueler.Dialog" />
-    <style name="Theme.Numo.BottomSheet" parent="Theme.Refueler.BottomSheet" />
 
     <!-- Style aliases for R.style references in legacy code -->
     <style name="Theme_Numo" parent="Theme.Refueler" />
