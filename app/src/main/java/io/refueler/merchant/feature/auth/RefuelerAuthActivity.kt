@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import io.refueler.merchant.core.prefs.EncryptedPreferenceStore
 import io.refueler.merchant.feature.pin.PinEntryActivity
-import io.refueler.merchant.feature.pos.ModernPOSActivity
+import io.refueler.merchant.ModernPOSActivity
 import io.refueler.merchant.feature.provisioning.RefuelerProvisioningActivity
 import io.refueler.merchant.feature.provisioning.RefuelerProvisioningActivity.Companion.KEY_LOCAL_GRANT_UNTIL
 import io.refueler.merchant.feature.provisioning.RefuelerProvisioningActivity.Companion.KEY_SESSION_JWT

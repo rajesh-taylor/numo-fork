@@ -17,7 +17,7 @@ import io.refueler.merchant.core.network.SupabaseClient
 import io.refueler.merchant.core.util.NetworkUtils
 import io.refueler.merchant.core.worker.BitcoinPriceWorker
 import io.refueler.merchant.feature.history.PaymentsHistoryActivity
-import io.refueler.merchant.feature.items.ItemSelectionActivity
+import io.refueler.merchant.feature.items.ItemListActivity
 import io.refueler.merchant.feature.order.FloorOrderActivity
 import io.refueler.merchant.feature.settings.SettingsActivity
 import io.refueler.merchant.ui.theme.ThemeManager
@@ -205,7 +205,7 @@ class PosUiCoordinator(
             activity.startActivity(Intent(activity, PaymentsHistoryActivity::class.java))
         }
         activity.findViewById<ImageButton>(R.id.action_catalog)?.setOnClickListener {
-            activity.startActivity(Intent(activity, ItemSelectionActivity::class.java))
+            activity.startActivity(Intent(activity, ItemListActivity::class.java))
         }
         activity.findViewById<ImageButton>(R.id.action_settings)?.setOnClickListener {
             activity.startActivity(Intent(activity, SettingsActivity::class.java))
