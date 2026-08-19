@@ -108,21 +108,23 @@ class PinEntryActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        pinKeypad.onDigitEntered = { digit ->
-            if (!isInputDisabled && enteredPin.length < PIN_LENGTH) {
-                enteredPin.append(digit)
-                pinDots.setFilledCount(enteredPin.length)
-                if (enteredPin.length == PIN_LENGTH) {
-                    submitPin(enteredPin.toString())
+        pinKeypad.setOnKeyListener(object : PinKeypadView.OnKeyListener {
+            override fun onDigitPressed(digit: String) {
+                if (!isInputDisabled && enteredPin.length < PIN_LENGTH) {
+                    enteredPin.append(digit)
+                    pinDots.addDigit()
+                    if (enteredPin.length == PIN_LENGTH) {
+                        submitPin(enteredPin.toString())
+                    }
                 }
             }
-        }
-        pinKeypad.onDeletePressed = {
-            if (enteredPin.isNotEmpty()) {
-                enteredPin.deleteCharAt(enteredPin.length - 1)
-                pinDots.setFilledCount(enteredPin.length)
+            override fun onDeletePressed() {
+                if (enteredPin.isNotEmpty()) {
+                    enteredPin.deleteCharAt(enteredPin.length - 1)
+                    pinDots.removeDigit()
+                }
             }
-        }
+        })
 
         val allowBack = intent.getBooleanExtra(EXTRA_ALLOW_BACK, false)
         if (allowBack) {
@@ -247,8 +249,8 @@ class PinEntryActivity : AppCompatActivity() {
 
     private fun onVerifyBadPin(attemptsRemaining: Int) {
         enteredPin.clear()
-        pinDots.setFilledCount(0)
-        pinDots.animateError()
+        pinDots.clear()
+        pinDots.showError()
         isInputDisabled = false
         pinKeypad.alpha = 1f
 
@@ -276,7 +278,7 @@ class PinEntryActivity : AppCompatActivity() {
 
     private fun onVerifyError(message: String) {
         enteredPin.clear()
-        pinDots.setFilledCount(0)
+        pinDots.clear()
         isInputDisabled = false
         pinKeypad.alpha = 1f
         showError(getString(R.string.pin_entry_network_error))
@@ -308,7 +310,7 @@ class PinEntryActivity : AppCompatActivity() {
                     isInputDisabled = false
                     pinKeypad.alpha = 1f
                     enteredPin.clear()
-                    pinDots.setFilledCount(0)
+                    pinDots.clear()
                 }
             }
         }
