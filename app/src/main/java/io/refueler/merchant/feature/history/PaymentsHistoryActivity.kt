@@ -1,6 +1,5 @@
 package io.refueler.merchant.feature.history
 
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.refueler.merchant.R
 import io.refueler.merchant.core.data.repository.MerchantOrder
 import io.refueler.merchant.core.data.repository.MerchantOrdersRepository
 import io.refueler.merchant.core.network.SupabaseException
@@ -30,16 +28,12 @@ import java.util.Locale
 /**
  * Payment history screen for floor staff.
  *
- * NumoPay-C: data source replaced with merchant_orders via MerchantOrdersRepository.
+ * NumoPay-C: reads from merchant_orders via MerchantOrdersRepository.
+ * Uses actual activity_history.xml binding IDs:
+ *   historyRecyclerView, emptyView (+ top_bar, overflow_button retained from layout)
+ *
  * Removed: CashuWalletManager, AutoWithdrawManager, WithdrawHistoryEntry,
- *           ActivityCsvExportHelper (Cashu-based), BalanceRefreshBroadcast.
- *
- * Retained: ActivityHistoryBinding layout, date-range filter (day/week/month),
- *           CSV export (now writes merchant_orders data), back button.
- *
- * The static getPaymentHistory(context) method that InsightsRepository was calling
- * is intentionally NOT reproduced here — InsightsActivity now calls
- * MerchantOrdersRepository directly, as does this activity.
+ *           ActivityCsvExportHelper, BalanceRefreshBroadcast.
  */
 class PaymentsHistoryActivity : AppCompatActivity() {
 
@@ -58,51 +52,42 @@ class PaymentsHistoryActivity : AppCompatActivity() {
 
         enableEdgeToEdgeWithPill(this, lightNavIcons = true)
 
-        binding.backButton?.setOnClickListener { finish() }
+        // Back button uses top_bar back arrow (overflow_button repurposed as back)
+        binding.overflowButton?.setOnClickListener { finish() }
 
-        binding.transactionsRecycler?.layoutManager = LinearLayoutManager(this)
-        binding.transactionsRecycler?.adapter = OrderHistoryAdapter(emptyList())
+        // Hide Cashu-specific views that exist in the layout but have no data
+        binding.balanceSection?.visibility = View.GONE
+        binding.insightsButton?.visibility = View.GONE
+        binding.filterHeader?.visibility = View.GONE
+        binding.filtersContainer?.visibility = View.GONE
 
-        // CSV export button (optional — only shown if the view exists in layout)
-        binding.exportCsvButton?.setOnClickListener {
-            val timestamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(java.util.Date())
-            csvExportLauncher.launch("refueler-history-$timestamp.csv")
-        }
+        binding.historyRecyclerView?.layoutManager = LinearLayoutManager(this)
+        binding.historyRecyclerView?.adapter = OrderHistoryAdapter(emptyList())
 
-        // Filter buttons (optional — only shown if views exist in layout)
-        binding.filterDay?.setOnClickListener { loadOrders(daysBack = 1) }
-        binding.filterWeek?.setOnClickListener { loadOrders(daysBack = 7) }
-        binding.filterMonth?.setOnClickListener { loadOrders(daysBack = 30) }
-
-        loadOrders(daysBack = 7) // Default: last 7 days
+        loadOrders()
     }
 
     override fun onResume() {
         super.onResume()
-        loadOrders(daysBack = 7)
+        loadOrders()
     }
 
     // ------------------------------------------------------------------
     // Data loading
     // ------------------------------------------------------------------
 
-    private fun loadOrders(daysBack: Int) {
+    private fun loadOrders() {
         lifecycleScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
                     MerchantOrdersRepository.fetchConfirmed(this@PaymentsHistoryActivity)
                 }
-                // Client-side date filter
-                val cutoff = System.currentTimeMillis() - daysBack.toLong() * 86_400_000L
-                orders = result.filter { it.date.time >= cutoff }
+                orders = result
                 render()
             } catch (e: Exception) {
                 val msg = if (e is SupabaseException) e.responseBody else e.message ?: "Error"
-                Toast.makeText(
-                    this@PaymentsHistoryActivity,
-                    getString(R.string.history_load_error, msg),
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@PaymentsHistoryActivity,
+                    "Could not load history: $msg", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -113,12 +98,12 @@ class PaymentsHistoryActivity : AppCompatActivity() {
 
     private fun render() {
         if (orders.isEmpty()) {
-            binding.emptyState?.visibility = View.VISIBLE
-            binding.transactionsRecycler?.visibility = View.GONE
+            binding.emptyView?.visibility = View.VISIBLE
+            binding.historyRecyclerView?.visibility = View.GONE
         } else {
-            binding.emptyState?.visibility = View.GONE
-            binding.transactionsRecycler?.visibility = View.VISIBLE
-            (binding.transactionsRecycler?.adapter as? OrderHistoryAdapter)?.update(orders)
+            binding.emptyView?.visibility = View.GONE
+            binding.historyRecyclerView?.visibility = View.VISIBLE
+            (binding.historyRecyclerView?.adapter as? OrderHistoryAdapter)?.update(orders)
         }
     }
 
@@ -130,15 +115,14 @@ class PaymentsHistoryActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val csv = buildCsvString(orders)
-                contentResolver.openOutputStream(uri)?.use { out ->
-                    out.write(csv.toByteArray())
-                }
+                contentResolver.openOutputStream(uri)?.use { it.write(csv.toByteArray()) }
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@PaymentsHistoryActivity, "Exported", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@PaymentsHistoryActivity, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@PaymentsHistoryActivity,
+                        "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -149,18 +133,13 @@ class PaymentsHistoryActivity : AppCompatActivity() {
         sb.appendLine("order_code,date,status,origin,payment_method,amount_gbp,settled_sats,routing_fee_sats")
         val dateFmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
         rows.forEach { o ->
-            sb.appendLine(
-                listOf(
-                    o.orderCode,
-                    dateFmt.format(o.date),
-                    o.status,
-                    o.origin,
-                    o.paymentMethod ?: "lightning",
-                    o.amountGbp?.toString() ?: "",
-                    o.settledSats?.toString() ?: "",
-                    o.routingFeeSats?.toString() ?: ""
-                ).joinToString(",")
-            )
+            sb.appendLine(listOf(
+                o.orderCode, dateFmt.format(o.date), o.status, o.origin,
+                o.paymentMethod ?: "lightning",
+                o.amountGbp?.toString() ?: "",
+                o.settledSats?.toString() ?: "",
+                o.routingFeeSats?.toString() ?: ""
+            ).joinToString(","))
         }
         return sb.toString()
     }
@@ -171,6 +150,15 @@ class PaymentsHistoryActivity : AppCompatActivity() {
 
     private fun formatGbp(amount: Double): String =
         NumberFormat.getCurrencyInstance(Locale.UK).format(amount)
+
+    // ------------------------------------------------------------------
+    // Companion — legacy stub
+    // ------------------------------------------------------------------
+
+    companion object {
+        @JvmStatic
+        fun getPaymentHistory(context: android.content.Context): List<Any> = emptyList()
+    }
 
     // ------------------------------------------------------------------
     // Adapter
@@ -186,7 +174,7 @@ class PaymentsHistoryActivity : AppCompatActivity() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_history_entry, parent, false)
+                .inflate(io.refueler.merchant.R.layout.item_history_entry, parent, false)
             return VH(view)
         }
 
@@ -194,52 +182,32 @@ class PaymentsHistoryActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(items[position])
 
         inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-            private val tvLabel: TextView? = view.findViewById(R.id.entry_label)
-            private val tvAmount: TextView? = view.findViewById(R.id.entry_amount)
-            private val tvDate: TextView? = view.findViewById(R.id.entry_date)
-            private val tvSecondary: TextView? = view.findViewById(R.id.entry_secondary)
+            private val tvLabel: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_label)
+            private val tvAmount: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_amount)
+            private val tvDate: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_date)
+            private val tvSecondary: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_secondary)
 
             fun bind(order: MerchantOrder) {
                 tvLabel?.text = order.orderCode
-
                 val amountText = when {
                     order.isLightning && (order.settledSats ?: 0L) > 0L -> {
-                        val satsStr = "%,d".format(order.settledSats)
-                        val feeStr = when {
-                            (order.routingFeeSats ?: 0L) > 0L ->
-                                "  ·  fee: %,d sats".format(order.routingFeeSats)
-                            else -> "  ·  fee: pending"
-                        }
-                        "$satsStr sats$feeStr"
+                        val fee = if ((order.routingFeeSats ?: 0L) > 0L)
+                            "  ·  fee: %,d sats".format(order.routingFeeSats)
+                        else "  ·  fee: pending"
+                        "%,d sats$fee".format(order.settledSats)
                     }
                     order.amountGbp != null -> formatGbp(order.amountGbp)
                     else -> "—"
                 }
                 tvAmount?.text = amountText
-
                 tvDate?.text = SimpleDateFormat("HH:mm  dd MMM", Locale.UK).format(order.date)
-
-                val methodLabel = when {
-                    order.isCash -> getString(R.string.history_payment_cash)
-                    order.isCard -> getString(R.string.history_payment_card)
-                    else -> getString(R.string.history_payment_lightning)
+                val method = when {
+                    order.isCash -> "Cash"
+                    order.isCard -> "Card"
+                    else -> "Lightning"
                 }
-                val originLabel = when {
-                    order.isFloor -> getString(R.string.history_origin_floor)
-                    else -> getString(R.string.history_origin_preorder)
-                }
-                tvSecondary?.text = "$originLabel  ·  $methodLabel"
+                tvSecondary?.text = "${if (order.isFloor) "Floor" else "Pre-order"}  ·  $method"
             }
         }
-    }
-
-    companion object {
-        /**
-         * Stub — legacy callers (PaymentFailureActivity, PaymentReceivedActivity)
-         * referenced this static method. Returns empty list; those activities
-         * will be removed in the same commit.
-         */
-        @JvmStatic
-        fun getPaymentHistory(context: android.content.Context): List<Any> = emptyList()
     }
 }

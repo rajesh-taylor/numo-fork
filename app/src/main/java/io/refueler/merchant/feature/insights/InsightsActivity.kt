@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.refueler.merchant.R
 import io.refueler.merchant.core.data.repository.MerchantOrder
 import io.refueler.merchant.core.data.repository.MerchantOrdersRepository
 import io.refueler.merchant.core.network.SupabaseException
@@ -27,16 +26,13 @@ import java.util.Locale
 /**
  * Insights / analytics screen.
  *
- * NumoPay-C: data source replaced with merchant_orders via MerchantOrdersRepository.
- * Removed: CashuWalletManager, BalanceRefreshBroadcast, InsightsRepository (Cashu),
- * InsightsData, BucketTotal, InsightsRange, InsightsTransactionAdapter (Cashu).
+ * NumoPay-C: reads from merchant_orders via MerchantOrdersRepository.
+ * Uses actual activity_insights.xml binding IDs:
+ *   backButton, viewOptionsButton, barChart, statPair, statLabel,
+ *   statValue, statSecondary, statSecondaryValue, transactionsRecycler, emptyText
  *
- * Replaced with: simple day/week/month aggregation over MerchantOrder list,
- * MerchantOrderAdapter for the recycler, GBP totals (sats secondary where available).
- *
- * The ActivityInsightsBinding layout is retained — we bind the same view IDs
- * from the existing layout. Chart (binding.barChart) is hidden in v1; it can
- * be re-enabled when a Supabase-native bar chart component is ready.
+ * Removed: CashuWalletManager, BalanceRefreshBroadcast, InsightsRepository (Cashu).
+ * Bar chart hidden — not wired to Supabase data in v1.
  */
 class InsightsActivity : AppCompatActivity() {
 
@@ -53,15 +49,13 @@ class InsightsActivity : AppCompatActivity() {
         enableEdgeToEdgeWithPill(this, lightNavIcons = true)
 
         binding.backButton.setOnClickListener { finish() }
-
-        // Range selector — reuse existing viewOptionsButton if present
         binding.viewOptionsButton?.setOnClickListener { cycleRange() }
 
-        binding.transactionsRecycler.layoutManager = LinearLayoutManager(this)
-        binding.transactionsRecycler.adapter = MerchantOrderAdapter(emptyList())
-
-        // Hide bar chart — not wired to Supabase data in v1
+        // Bar chart hidden — not wired in v1
         binding.barChart?.visibility = View.GONE
+
+        binding.transactionsRecycler?.layoutManager = LinearLayoutManager(this)
+        binding.transactionsRecycler?.adapter = MerchantOrderAdapter(emptyList())
 
         refresh()
     }
@@ -85,7 +79,9 @@ class InsightsActivity : AppCompatActivity() {
                 render()
             } catch (e: Exception) {
                 val msg = if (e is SupabaseException) e.responseBody else e.message ?: "Error"
-                showError(getString(R.string.history_load_error, msg))
+                binding.emptyText?.text = "Could not load history: $msg"
+                binding.emptyText?.visibility = View.VISIBLE
+                binding.transactionsRecycler?.visibility = View.GONE
             }
         }
     }
@@ -96,42 +92,29 @@ class InsightsActivity : AppCompatActivity() {
 
     private fun render() {
         val filtered = filterForRange(orders, range)
-
-        val totalSats = filtered.sumOf { it.settledSats ?: 0L }
         val totalGbp = filtered.sumOf { it.amountGbp ?: 0.0 }
-        val count = filtered.size
-
-        // Primary stat — total GBP
-        binding.statLabel?.text = rangeLabel()
-        binding.primaryValue?.text = formatGbp(totalGbp)
-
-        // Secondary stat — sats received (Lightning only)
         val lightningTotal = filtered.filter { it.isLightning }.sumOf { it.settledSats ?: 0L }
+
+        binding.statLabel?.text = rangeLabel()
+        binding.statValue?.text = formatGbp(totalGbp)
+        binding.statPair?.visibility = View.VISIBLE
+
         if (lightningTotal > 0L) {
-            binding.statSecondaryValue?.text = "${"%,d".format(lightningTotal)} sats"
+            binding.statSecondaryValue?.text = "%,d sats".format(lightningTotal)
             binding.statSecondary?.visibility = View.VISIBLE
         } else {
             binding.statSecondary?.visibility = View.GONE
         }
 
-        // Order count
-        binding.statPair?.visibility = View.VISIBLE
-
         if (filtered.isEmpty()) {
-            binding.emptyText?.text = getString(R.string.history_empty)
+            binding.emptyText?.text = getString(io.refueler.merchant.R.string.history_empty)
             binding.emptyText?.visibility = View.VISIBLE
-            binding.transactionsRecycler.visibility = View.GONE
+            binding.transactionsRecycler?.visibility = View.GONE
         } else {
             binding.emptyText?.visibility = View.GONE
-            binding.transactionsRecycler.visibility = View.VISIBLE
-            (binding.transactionsRecycler.adapter as MerchantOrderAdapter).update(filtered)
+            binding.transactionsRecycler?.visibility = View.VISIBLE
+            (binding.transactionsRecycler?.adapter as? MerchantOrderAdapter)?.update(filtered)
         }
-    }
-
-    private fun showError(message: String) {
-        binding.emptyText?.text = message
-        binding.emptyText?.visibility = View.VISIBLE
-        binding.transactionsRecycler.visibility = View.GONE
     }
 
     // ------------------------------------------------------------------
@@ -159,33 +142,12 @@ class InsightsActivity : AppCompatActivity() {
         val cal = Calendar.getInstance()
         val now = cal.time
         val start: Date = when (r) {
-            Range.DAY -> {
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.time
-            }
-            Range.WEEK -> {
-                cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.time
-            }
-            Range.MONTH -> {
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.time
-            }
+            Range.DAY -> { cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.time }
+            Range.WEEK -> { cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek); cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.time }
+            Range.MONTH -> { cal.set(Calendar.DAY_OF_MONTH, 1); cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.time }
         }
         return all.filter { it.date >= start && it.date <= now }
     }
-
-    // ------------------------------------------------------------------
-    // Formatting
-    // ------------------------------------------------------------------
 
     private fun formatGbp(amount: Double): String =
         NumberFormat.getCurrencyInstance(Locale.UK).format(amount)
@@ -197,48 +159,34 @@ class InsightsActivity : AppCompatActivity() {
     inner class MerchantOrderAdapter(private var items: List<MerchantOrder>) :
         RecyclerView.Adapter<MerchantOrderAdapter.VH>() {
 
-        fun update(newItems: List<MerchantOrder>) {
-            items = newItems
-            notifyDataSetChanged()
-        }
+        fun update(newItems: List<MerchantOrder>) { items = newItems; notifyDataSetChanged() }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_history_entry, parent, false)
+                .inflate(io.refueler.merchant.R.layout.item_history_entry, parent, false)
             return VH(view)
         }
 
         override fun getItemCount() = items.size
-        override fun onBindViewHolder(holder: VH, position: Int) =
-            holder.bind(items[position])
+        override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(items[position])
 
         inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-            private val tvLabel: TextView? = view.findViewById(R.id.entry_label)
-            private val tvAmount: TextView? = view.findViewById(R.id.entry_amount)
-            private val tvDate: TextView? = view.findViewById(R.id.entry_date)
-            private val tvOrigin: TextView? = view.findViewById(R.id.entry_secondary)
+            private val tvLabel: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_label)
+            private val tvAmount: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_amount)
+            private val tvDate: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_date)
+            private val tvSecondary: TextView? = view.findViewById(io.refueler.merchant.R.id.entry_secondary)
 
             fun bind(order: MerchantOrder) {
                 tvLabel?.text = order.orderCode
-
                 val amountText = when {
                     order.isLightning && (order.settledSats ?: 0L) > 0L ->
-                        "${"%,d".format(order.settledSats)} sats"
-                    order.amountGbp != null ->
-                        formatGbp(order.amountGbp)
+                        "%,d sats".format(order.settledSats)
+                    order.amountGbp != null -> formatGbp(order.amountGbp)
                     else -> "—"
                 }
                 tvAmount?.text = amountText
-
                 tvDate?.text = SimpleDateFormat("HH:mm  dd MMM", Locale.UK).format(order.date)
-
-                val originLabel = when {
-                    order.isFloor && order.isCash -> "Floor · Cash"
-                    order.isFloor && order.isCard -> "Floor · Card"
-                    order.isFloor -> "Floor · Lightning"
-                    else -> "Pre-order"
-                }
-                tvOrigin?.text = originLabel
+                tvSecondary?.text = if (order.isFloor) "Floor" else "Pre-order"
             }
         }
     }
