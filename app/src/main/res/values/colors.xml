@@ -86,5 +86,4 @@
     <!-- Legacy Numo alias — maps to Refueler gold, satisfies remaining drawable/layout refs -->
     <color name="color_primary">#FFC8A96E</color>
     <color name="color_primary_variant">#FFC8A96E</color>
-    <color name="color_primary_purple">#FFC8A96E</color>
 </resources>
