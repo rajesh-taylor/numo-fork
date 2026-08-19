@@ -1107,7 +1107,6 @@
     <!-- InsightsActivity / PaymentsHistoryActivity — Supabase-backed -->
     <string name="history_loading">Loading history…</string>
     <string name="history_load_error">Could not load history: %1$s</string>
-    <string name="history_empty">No orders yet</string>
     <string name="history_origin_preorder">Pre-order</string>
     <string name="history_origin_floor">Floor</string>
     <string name="history_payment_cash">Cash</string>
