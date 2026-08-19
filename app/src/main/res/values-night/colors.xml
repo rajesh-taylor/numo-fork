@@ -189,4 +189,6 @@
     <color name="color_theme_green">@color/numo_green</color>
     <color name="color_theme_white">#FFFFFF</color>
     <color name="color_theme_text_dark">@color/numo_dark</color>
+    <color name="color_primary">#FFC8A96E</color>
+    <color name="color_primary_variant">#FFC8A96E</color>
 </resources>
