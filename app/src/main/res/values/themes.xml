@@ -132,4 +132,6 @@
     <style name="Theme_Numo" parent="Theme.Refueler" />
     <style name="Theme_Numo_Dialog" parent="Theme.Refueler.Dialog" />
 
+<style name="Widget.Numo.BottomSheet" parent="Widget.MaterialComponents.BottomSheet" />
+
 </resources>

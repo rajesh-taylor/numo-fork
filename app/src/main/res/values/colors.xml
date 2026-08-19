@@ -77,4 +77,10 @@
     <color name="color_primary_green">@color/refueler_bg</color>
     <color name="empty_state_background">@color/refueler_bg</color>
 
+<color name="numo_red">#FFE05252</color>
+<color name="numo_bitcoin_orange">#FFC8A96E</color>
+<color name="numo_green">#FF27AE60</color>
+<color name="numo_dark">#FF1A1A1A</color>
+<color name="color_primary_purple">#FFC8A96E</color>
+
 </resources>
