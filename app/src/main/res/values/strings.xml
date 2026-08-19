@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Numo</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="item_list_title">Manage Catalog Items</string>
@@ -1056,4 +1055,63 @@
     <string name="btcpay_pos_no_apps">No Point of Sale apps found for this store</string>
     <string name="btcpay_pos_load_error">Failed to load apps: %1$s</string>
     <string name="btcpay_pos_items_error">Could not load BTCPay items</string>
+
+    <!-- ============================================================ -->
+    <!-- Refueler NumoPay-C strings                                   -->
+    <!-- ============================================================ -->
+
+    <!-- App identity -->
+    <string name="app_name">Refueler</string>
+
+    <!-- PinEntryActivity — shift-start gate -->
+    <string name="pin_entry_shift_start_title">Start your shift</string>
+    <string name="pin_entry_shift_start_subtitle">Enter your staff PIN to continue</string>
+    <string name="pin_entry_wrong_pin_attempts">Incorrect PIN. %1$d attempt(s) remaining.</string>
+    <string name="pin_entry_wrong_pin">Incorrect PIN</string>
+    <string name="pin_entry_session_expired">Session expired — contact your manager</string>
+    <string name="pin_entry_network_error">Could not reach server. Try again.</string>
+
+    <!-- RefuelerProvisioningActivity — QR scan onboarding -->
+    <string name="provisioning_error_empty_qr">No data found in QR code</string>
+    <string name="provisioning_error_invalid_qr">Invalid setup QR — ask your manager for a new one</string>
+
+    <!-- ModernPOSActivity — offline banner -->
+    <string name="offline_mode_banner_text">Offline — limited mode. Reconnecting…</string>
+
+    <!-- FloorOrderActivity — payment method choice -->
+    <string name="floor_order_title">New Order</string>
+    <string name="floor_order_total_label">Total</string>
+    <string name="floor_order_pay_lightning">Pay by Lightning</string>
+    <string name="floor_order_pay_cash">Cash</string>
+    <string name="floor_order_pay_card">Card</string>
+
+    <!-- FloorOrderActivity — Lightning flow -->
+    <string name="floor_order_lightning_waiting">Waiting for payment…</string>
+    <string name="floor_order_lightning_scan">Customer scans to pay</string>
+    <string name="floor_order_lightning_timeout">No payment received — check with customer</string>
+    <string name="floor_order_lightning_success">Payment received</string>
+    <string name="floor_order_lightning_error">Could not create invoice: %1$s</string>
+
+    <!-- FloorOrderActivity — cash/card record flow -->
+    <string name="floor_order_cash_confirmed">Cash payment recorded</string>
+    <string name="floor_order_card_confirmed">Card payment recorded</string>
+    <string name="floor_order_record_error">Could not record order: %1$s</string>
+
+    <!-- ItemListActivity — Supabase-backed catalogue -->
+    <string name="item_list_loading">Loading menu…</string>
+    <string name="item_list_load_error">Could not load menu: %1$s</string>
+    <string name="item_list_empty">No items on the menu yet.\nAdd items from the counter terminal.</string>
+    <string name="item_list_manage_on_terminal">Items are managed on the counter terminal</string>
+    <string name="item_list_sats_secondary">≈ %1$s sats</string>
+
+    <!-- InsightsActivity / PaymentsHistoryActivity — Supabase-backed -->
+    <string name="history_loading">Loading history…</string>
+    <string name="history_load_error">Could not load history: %1$s</string>
+    <string name="history_empty">No orders yet</string>
+    <string name="history_origin_preorder">Pre-order</string>
+    <string name="history_origin_floor">Floor</string>
+    <string name="history_payment_cash">Cash</string>
+    <string name="history_payment_card">Card</string>
+    <string name="history_payment_lightning">Lightning</string>
+
 </resources>
