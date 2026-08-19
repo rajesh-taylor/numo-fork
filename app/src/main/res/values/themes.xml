@@ -4,49 +4,33 @@
     <!--
         Theme.Refueler — Refueler Carbon, always-on.
         Replaces Theme.Numo. No night/light toggle; no AppCompatDelegate calls.
-        NumoPay is a POS terminal, not a personal phone.
         NumoPay-B · 2026-08-19
     -->
 
-    <!-- Base application theme -->
     <style name="Theme.Refueler" parent="Theme.MaterialComponents.NoActionBar">
-        <!-- Primary / secondary map to gold for any Material widgets that use them -->
         <item name="colorPrimary">@color/refueler_gold</item>
         <item name="colorPrimaryVariant">@color/refueler_surface_raised</item>
         <item name="colorOnPrimary">@color/refueler_bg</item>
         <item name="colorSecondary">@color/refueler_gold</item>
         <item name="colorSecondaryVariant">@color/refueler_surface</item>
         <item name="colorOnSecondary">@color/refueler_bg</item>
-
-        <!-- System bars — Carbon, light bars disabled (light text on dark) -->
         <item name="android:statusBarColor">@color/refueler_bg</item>
         <item name="android:navigationBarColor">@color/refueler_bg</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
-
-        <!-- Window / surface -->
         <item name="android:windowBackground">@color/refueler_bg</item>
         <item name="android:colorBackground">@color/refueler_bg</item>
         <item name="colorSurface">@color/refueler_surface</item>
         <item name="colorOnSurface">@color/refueler_fg</item>
-
-        <!-- Text -->
         <item name="android:textColor">@color/refueler_fg</item>
-
-        <!-- Controls -->
         <item name="colorControlNormal">@color/refueler_fg_muted</item>
         <item name="colorControlActivated">@color/refueler_success</item>
-
-        <!-- Popup menus -->
         <item name="popupMenuStyle">@style/Widget.Refueler.PopupMenu</item>
         <item name="android:popupMenuStyle">@style/Widget.Refueler.PopupMenu</item>
-
-        <!-- Snackbar -->
         <item name="snackbarStyle">@style/Widget.Refueler.Snackbar</item>
         <item name="snackbarTextViewStyle">@style/Widget.Refueler.Snackbar.Text</item>
     </style>
 
-    <!-- Splash theme — shown on app cold-start before RefuelerAuthActivity routes -->
     <style name="Theme.Refueler.Splash" parent="Theme.Refueler">
         <item name="android:windowBackground">@color/refueler_bg</item>
         <item name="android:statusBarColor">@color/refueler_bg</item>
@@ -55,7 +39,6 @@
         <item name="android:windowLightNavigationBar">false</item>
     </style>
 
-    <!-- QR scanner — full-screen, black background -->
     <style name="Theme.Refueler.Fullscreen" parent="Theme.Refueler">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
@@ -64,7 +47,6 @@
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <!-- Dialog theme -->
     <style name="Theme.Refueler.Dialog" parent="Theme.MaterialComponents.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
@@ -74,7 +56,6 @@
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 
-    <!-- Bottom sheet -->
     <style name="Theme.Refueler.BottomSheet" parent="Theme.MaterialComponents.BottomSheetDialog">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
@@ -104,13 +85,11 @@
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
-    <!-- Popup menu -->
     <style name="Widget.Refueler.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
         <item name="android:popupBackground">@drawable/bg_popup_menu</item>
         <item name="android:popupElevation">0dp</item>
     </style>
 
-    <!-- Snackbar -->
     <style name="Widget.Refueler.Snackbar" parent="Widget.MaterialComponents.Snackbar">
         <item name="android:background">@color/refueler_surface_raised</item>
     </style>
@@ -119,25 +98,20 @@
         <item name="android:textColor">@color/refueler_fg</item>
     </style>
 
-    <!-- Button normalisation -->
     <style name="Widget.Refueler.Button" parent="Widget.MaterialComponents.Button">
         <item name="android:minHeight">48dp</item>
         <item name="android:textColor">@color/refueler_bg</item>
         <item name="backgroundTint">@color/refueler_gold</item>
     </style>
 
-    <!-- Legacy Theme.Numo aliases — keeps existing activities compiling without rename -->
-
-    <!-- Style aliases for R.style references in legacy code -->
-    <style name="Theme_Numo" parent="Theme.Refueler" />
-    <style name="Theme_Numo_Dialog" parent="Theme.Refueler.Dialog" />
-
-<style name="Widget.Numo.BottomSheet" parent="Widget.MaterialComponents.BottomSheet" />
-
-    <!-- Theme.Numo dot-notation aliases — manifest + BottomSheet fragments -->
+    <!-- Legacy aliases — one of each, no duplicates -->
     <style name="Theme.Numo" parent="Theme.Refueler" />
     <style name="Theme.Numo.Fullscreen" parent="Theme.Refueler.Fullscreen" />
     <style name="Theme.Numo.BottomSheet" parent="Theme.Refueler.BottomSheet" />
     <style name="Theme.Numo.Splash" parent="Theme.Refueler.Splash" />
+    <style name="Theme_Numo" parent="Theme.Refueler" />
+    <style name="Theme_Numo_Dialog" parent="Theme.Refueler.Dialog" />
     <style name="Theme_Numo_BottomSheet" parent="Theme.Refueler.BottomSheet" />
+    <style name="Widget.Numo.BottomSheet" parent="Widget.MaterialComponents.BottomSheet" />
+
 </resources>
