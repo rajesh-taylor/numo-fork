@@ -61,8 +61,8 @@ class PaymentsHistoryActivity : AppCompatActivity() {
         binding.filterHeader?.visibility = View.GONE
         binding.filtersContainer?.visibility = View.GONE
 
-        binding.historyRecyclerView?.layoutManager = LinearLayoutManager(this)
-        binding.historyRecyclerView?.adapter = OrderHistoryAdapter(emptyList())
+        binding.historyRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.historyRecyclerView.adapter = OrderHistoryAdapter(emptyList())
 
         loadOrders()
     }
@@ -98,12 +98,12 @@ class PaymentsHistoryActivity : AppCompatActivity() {
 
     private fun render() {
         if (orders.isEmpty()) {
-            binding.emptyView?.visibility = View.VISIBLE
-            binding.historyRecyclerView?.visibility = View.GONE
+            binding.emptyView.visibility = View.VISIBLE
+            binding.historyRecyclerView.visibility = View.GONE
         } else {
-            binding.emptyView?.visibility = View.GONE
-            binding.historyRecyclerView?.visibility = View.VISIBLE
-            (binding.historyRecyclerView?.adapter as? OrderHistoryAdapter)?.update(orders)
+            binding.emptyView.visibility = View.GONE
+            binding.historyRecyclerView.visibility = View.VISIBLE
+            (binding.historyRecyclerView.adapter as? OrderHistoryAdapter)?.update(orders)
         }
     }
 
