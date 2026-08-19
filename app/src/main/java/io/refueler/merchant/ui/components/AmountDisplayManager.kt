@@ -11,7 +11,6 @@ import android.widget.Toast
 import io.refueler.merchant.core.model.Amount
 import io.refueler.merchant.core.prefs.PreferenceStore
 import io.refueler.merchant.core.util.CurrencyManager
-import io.refueler.merchant.core.util.MintLimitChecker
 import io.refueler.merchant.core.worker.BitcoinPriceWorker
 import io.refueler.merchant.core.util.NetworkUtils
 
@@ -188,23 +187,11 @@ class AmountDisplayManager(
             val isReady = true // Wallet-readiness removed
             val isNetworkAvailable = NetworkUtils.isNetworkAvailable(context)
             if (isReady) {
-                val limitCheck = MintLimitChecker.checkMintLimits(satsValue, currentMintLimits)
-                if (limitCheck.isValid) {
-                    submitButton.text = context.getString(R.string.pos_charge_button)
-                    submitButton.isEnabled = isNetworkAvailable
-                    submitButton.alpha = if (isNetworkAvailable) 1.0f else 0.5f
-                } else {
-                    val buttonText = when (limitCheck.limitType) {
-                        MintLimitChecker.LimitType.MIN -> context.getString(R.string.pos_charge_button_min_limit, limitCheck.minAmount ?: 0)
-                        MintLimitChecker.LimitType.MAX -> context.getString(R.string.pos_charge_button_max_limit, limitCheck.maxAmount ?: 0)
-                        MintLimitChecker.LimitType.DISABLED -> context.getString(R.string.pos_charge_button_mint_disabled)
-                        else -> context.getString(R.string.pos_charge_button)
-                    }
-                    submitButton.text = buttonText
-                    submitButton.isEnabled = false
-                    submitButton.alpha = 0.5f
-                }
-            } else {
+            val isNetworkAvailable = NetworkUtils.isNetworkAvailable(context)
+            // MintLimitChecker removed — enable button when network is available
+            submitButton.text = context.getString(R.string.pos_charge_button)
+            submitButton.isEnabled = isNetworkAvailable
+            submitButton.alpha = if (isNetworkAvailable) 1.0f else 0.5f
                 submitButton.text = context.getString(R.string.pos_charge_button_loading)
                 submitButton.isEnabled = false
                 submitButton.alpha = 0.5f

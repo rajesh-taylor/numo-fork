@@ -65,8 +65,8 @@ class ItemListActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyView: TextView
-    private lateinit var loadingView: View
-    private lateinit var categoryStrip: LinearLayout
+    // loadingView removed — not in layout
+    // categoryStrip removed — not in layout
     private lateinit var adapter: MenuItemAdapter
 
     private var allItems: List<MenuItem> = emptyList()
@@ -96,9 +96,9 @@ class ItemListActivity : AppCompatActivity() {
         }
 
         recyclerView = findViewById(R.id.items_recycler_view)
-        emptyView = findViewById(R.id.empty_text_view)
-        loadingView = findViewById(R.id.loading_view)
-        categoryStrip = findViewById(R.id.category_strip)
+        emptyView = findViewById(R.id.empty_view)
+        // loadingView not in layout — using emptyView for loading state
+        // categoryStrip not in layout — category filtering skipped in v1
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = MenuItemAdapter(emptyList()) { item -> onItemTapped(item) }
@@ -131,10 +131,10 @@ class ItemListActivity : AppCompatActivity() {
     // ------------------------------------------------------------------
 
     private fun loadMenu() {
-        loadingView.visibility = View.VISIBLE
+        emptyView.visibility = View.VISIBLE; emptyView.text = "Loading menu…"
         emptyView.visibility = View.GONE
         recyclerView.visibility = View.GONE
-        categoryStrip.visibility = View.GONE
+        // categoryStrip.visibility = View.GONE
 
         loadJob = CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -155,14 +155,14 @@ class ItemListActivity : AppCompatActivity() {
     }
 
     private fun onItemsLoaded(items: List<MenuItem>) {
-        loadingView.visibility = View.GONE
+        emptyView.visibility = View.GONE
         allItems = items
 
         if (items.isEmpty()) {
             emptyView.text = getString(R.string.item_list_empty)
             emptyView.visibility = View.VISIBLE
             recyclerView.visibility = View.GONE
-            categoryStrip.visibility = View.GONE
+            // categoryStrip.visibility = View.GONE
             return
         }
 
@@ -172,7 +172,7 @@ class ItemListActivity : AppCompatActivity() {
     }
 
     private fun onLoadError(message: String) {
-        loadingView.visibility = View.GONE
+        emptyView.visibility = View.GONE
         emptyView.text = getString(R.string.item_list_load_error, message)
         emptyView.visibility = View.VISIBLE
         recyclerView.visibility = View.GONE
@@ -184,39 +184,11 @@ class ItemListActivity : AppCompatActivity() {
     // ------------------------------------------------------------------
 
     private fun buildCategoryStrip(items: List<MenuItem>) {
-        categoryStrip.removeAllViews()
-        val categories = listOf(null) + items.mapNotNull { it.category }.distinct().sorted()
-
-        if (categories.size <= 2) {
-            // Only "All" (and possibly one category) — no strip needed
-            categoryStrip.visibility = View.GONE
-            return
-        }
-
-        categoryStrip.visibility = View.VISIBLE
-        val inflater = LayoutInflater.from(this)
-
-        categories.forEach { cat ->
-            val chip = inflater.inflate(
-                R.layout.item_category_chip, categoryStrip, false
-            ) as TextView
-            chip.text = cat ?: getString(R.string.history_origin_preorder).let { "All" }
-            chip.isSelected = (cat == selectedCategory)
-            chip.setOnClickListener {
-                selectedCategory = cat
-                updateChipSelection()
-                applyFilter()
-            }
-            categoryStrip.addView(chip)
-        }
+        // Category strip not in layout in v1 — filtering skipped
     }
 
     private fun updateChipSelection() {
-        for (i in 0 until categoryStrip.childCount) {
-            val chip = categoryStrip.getChildAt(i) as? TextView ?: continue
-            val catLabel = if (selectedCategory == null) "All" else selectedCategory
-            chip.isSelected = chip.text.toString() == (catLabel ?: "All")
-        }
+        // Category strip not in layout in v1
     }
 
     private fun applyFilter() {

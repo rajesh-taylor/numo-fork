@@ -64,4 +64,17 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <!-- Refueler warn color -->
+    <color name="refueler_warn">#FFC8943A</color>
+
+    <!-- Legacy Numo color aliases — map to Refueler tokens -->
+    <color name="color_warning_red">@color/refueler_danger</color>
+    <color name="color_warning">@color/refueler_warn</color>
+    <color name="color_success_green">@color/refueler_success</color>
+    <color name="color_bitcoin_orange">@color/refueler_gold</color>
+    <color name="color_error">@color/refueler_danger</color>
+    <color name="color_bg_white">@color/refueler_fg</color>
+    <color name="color_primary_green">@color/refueler_bg</color>
+    <color name="empty_state_background">@color/refueler_bg</color>
+
 </resources>
