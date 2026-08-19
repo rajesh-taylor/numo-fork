@@ -23,7 +23,9 @@ import com.google.zxing.qrcode.QRCodeWriter
 import io.refueler.merchant.R
 import io.refueler.merchant.core.network.SupabaseClient
 import io.refueler.merchant.core.network.SupabaseException
-import io.refueler.merchant.util.getVibrator
+import android.content.Context
+import android.os.Build
+import android.os.VibratorManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -124,7 +126,12 @@ class FloorOrderActivity : AppCompatActivity() {
 
         amountGbp = intent.getDoubleExtra(EXTRA_AMOUNT_GBP, 0.0)
         itemsJson = intent.getStringExtra(EXTRA_ITEMS_JSON) ?: "[]"
-        vibrator = getVibrator(this)
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+        }
 
         bindViews()
         showMethodChoice()

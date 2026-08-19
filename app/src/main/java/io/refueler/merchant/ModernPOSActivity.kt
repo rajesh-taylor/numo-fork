@@ -16,7 +16,10 @@ import android.graphics.drawable.ColorDrawable
 import io.refueler.merchant.core.worker.BitcoinPriceWorker
 import io.refueler.merchant.feature.history.PaymentsHistoryActivity
 import io.refueler.merchant.ui.components.PosUiCoordinator
+import android.content.Context
+import android.os.Build
 import android.os.Vibrator
+import android.os.VibratorManager
 
 /**
  * Primary POS screen for floor staff.
@@ -70,7 +73,12 @@ class ModernPOSActivity : AppCompatActivity() {
         val paymentAmount = intent.getLongExtra("EXTRA_PAYMENT_AMOUNT", 0L)
         uiCoordinator.handleInitialPaymentAmount(paymentAmount)
 
-        vibrator = io.refueler.merchant.util.getVibrator(this)
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
 
         // Show offline banner if shift-start PIN was verified via local grant
         if (intent.getBooleanExtra(EXTRA_OFFLINE_MODE, false)) {
