@@ -54,8 +54,6 @@ android {
     }
 
     buildFeatures {
-        // We are not using Jetpack Compose in production UI; keep it disabled to
-        // avoid version coupling between Compose compiler and Kotlin.
         compose = false
         viewBinding = true
         buildConfig = true
@@ -70,8 +68,7 @@ android {
     lint {
         lintConfig = file("src/main/res/xml/lint.xml")
         baseline = file("lint-baseline.xml")
-        abortOnError = false  // We want to build even with lint warnings
-        // Also disable the specific NewApi checks for Optional
+        abortOnError = false
         disable += "NewApi"
     }
 
@@ -112,12 +109,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    // Project specific dependencies
     implementation("org.bouncycastle:bcprov-jdk18on:1.80")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    // implementation(files("libs/cashu-java-sdk-1.0-SNAPSHOT.jar"))
 
     // Jackson for JSON and CBOR processing
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
@@ -137,8 +131,10 @@ dependencies {
     // Jetpack Security — EncryptedSharedPreferences (AES-256-GCM via Android Keystore)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // CDK Kotlin bindings
-    implementation("org.cashudevkit:cdk-android:0.17.2-rc.1")
+    // CDK Kotlin bindings — REMOVED NumoPay-B.
+    // Returns only at Block 8 / Pass floor-device redemption.
+    // Must pin to stable cdk-android:0.17.2 (not -rc.1) matching refueler-mint.
+    // implementation("org.cashudevkit:cdk-android:0.17.2-rc.1")
     
     // ML Kit Barcode Scanning
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
@@ -156,6 +152,10 @@ dependencies {
     
     // Custom Tabs for embedded web links
     implementation("androidx.browser:browser:1.8.0")
+
+    // Coroutines — needed by PinEntryActivity verify-pin EF call
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
 }
 
 tasks.withType<Test>().configureEach {
@@ -174,7 +174,6 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         csv.required.set(true)
     }
 
-    // Use layout.buildDirectory instead of project.buildDir (deprecated)
     val buildDir = layout.buildDirectory.get().asFile
     
     val debugTree = fileTree("$buildDir/tmp/kotlin-classes/debug") {

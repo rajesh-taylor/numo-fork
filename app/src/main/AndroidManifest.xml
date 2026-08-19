@@ -2,20 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions for NFC client functionality -->
+    <!-- NFC permissions retained but android:required changed to false —
+         NumoPay no longer uses NFC HCE. A floor device without NFC is fine. -->
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.HOST_CARD_EMULATION" />
-    <uses-feature android:name="android.hardware.nfc" android:required="true" />
-    <uses-feature android:name="android.hardware.nfc.hce" android:required="true" />
-    
-    <!-- Permission for network access -->
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+    <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
+
+    <!-- Network -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
-    <!-- Permission for vibration -->
+
+    <!-- Haptic -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    
-    <!-- Permission for camera and storage -->
+
+    <!-- Camera / storage -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -30,11 +31,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Numo"
+        android:theme="@style/Theme.Refueler"
         android:localeConfig="@xml/locales_config"
         android:name=".NumoApplication"
         tools:targetApi="33">
-        <!-- For local dev only: add android:networkSecurityConfig="@xml/development_network_security_config" to <application> above -->
 
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
@@ -45,12 +45,16 @@
                 android:value="true" />
         </service>
 
-        <!-- Onboarding Activity - First Launch -->
+        <!-- ═══════════════════════════════════════════════════════════
+             LAUNCHER — RefuelerAuthActivity (routing only, no UI)
+             Replaces OnboardingActivity as the entry point.
+             OnboardingActivity declaration removed — class deleted.
+             ═══════════════════════════════════════════════════════════ -->
         <activity
-            android:name="io.refueler.merchant.feature.onboarding.OnboardingActivity"
+            android:name="io.refueler.merchant.feature.auth.RefuelerAuthActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Numo.Splash"
+            android:theme="@style/Theme.Refueler.Splash"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
             <intent-filter>
@@ -59,30 +63,38 @@
             </intent-filter>
         </activity>
 
-        <!-- NFC Enable Activity -->
+        <!-- Provisioning screen (first-time QR scan) -->
+        <activity
+            android:name="io.refueler.merchant.feature.provisioning.RefuelerProvisioningActivity"
+            android:exported="false"
+            android:label="Set up device"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- NFC Enable Activity — kept in case device has NFC disabled -->
         <activity
             android:name=".NfcEnableActivity"
             android:exported="false"
             android:label="@string/nfc_enable_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
-        <!-- Modern POS Activity - Main App -->
+        <!-- Main POS screen -->
         <activity
             android:name="io.refueler.merchant.ModernPOSActivity"
-            android:exported="true"
+            android:exported="false"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
-        </activity>
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
-        <!-- Payment Request Activity (QR / Nostr / Lightning request screen) -->
+        <!-- Payment screens — theme updated, behaviour unchanged -->
         <activity android:name="io.refueler.merchant.PaymentRequestActivity"
             android:exported="false"
             android:label="Payment Request"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName="io.refueler.merchant.ModernPOSActivity">
@@ -91,11 +103,10 @@
                 android:value="io.refueler.merchant.ModernPOSActivity" />
         </activity>
 
-        <!-- Payment Received Activity (success screen) -->
         <activity android:name="io.refueler.merchant.PaymentReceivedActivity"
             android:exported="false"
             android:label="Payment Received"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName="io.refueler.merchant.ModernPOSActivity">
@@ -104,11 +115,10 @@
                 android:value="io.refueler.merchant.ModernPOSActivity" />
         </activity>
 
-        <!-- Payment Failure Activity -->
         <activity android:name="io.refueler.merchant.PaymentFailureActivity"
             android:exported="false"
             android:label="Payment Failed"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName="io.refueler.merchant.ModernPOSActivity">
@@ -116,11 +126,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.refueler.merchant.ModernPOSActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.history.PaymentsHistoryActivity"
             android:exported="false"
             android:label="@string/history_toolbar_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".ModernPOSActivity">
@@ -132,7 +142,7 @@
         <activity android:name="io.refueler.merchant.feature.insights.InsightsActivity"
             android:exported="false"
             android:label="@string/insights_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.history.PaymentsHistoryActivity">
@@ -140,11 +150,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.history.PaymentsHistoryActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.history.TransactionDetailActivity"
             android:exported="false"
             android:label="@string/transaction_detail_toolbar_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.history.PaymentsHistoryActivity">
@@ -152,11 +162,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.history.PaymentsHistoryActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/settings_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".ModernPOSActivity">
@@ -164,11 +174,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ModernPOSActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.settings.ThemeSettingsActivity"
             android:exported="false"
             android:label="@string/settings_theme_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
@@ -180,19 +190,7 @@
         <activity android:name="io.refueler.merchant.feature.settings.DefaultPaymentMethodSettingsActivity"
             android:exported="false"
             android:label="@string/settings_item_default_payment_method_title"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.settings.SettingsActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.settings.SettingsActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.settings.CurrencySettingsActivity"
-            android:exported="false"
-            android:label="@string/settings_currency_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
@@ -201,10 +199,25 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
+        <activity android:name="io.refueler.merchant.feature.settings.CurrencySettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_currency_title"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.settings.SettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.settings.SettingsActivity" />
+        </activity>
+
+        <!-- WebhookSettingsActivity retained in manifest for now.
+             Its outbound dispatch logic is removed in the Kotlin file.
+             Full removal deferred to NumoPay-C settings audit. -->
         <activity android:name="io.refueler.merchant.feature.settings.WebhookSettingsActivity"
             android:exported="false"
             android:label="@string/webhook_settings_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
@@ -216,7 +229,7 @@
         <activity android:name="io.refueler.merchant.feature.settings.MintsSettingsActivity"
             android:exported="false"
             android:label="@string/settings_mints_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:windowSoftInputMode="adjustResize"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
@@ -229,7 +242,7 @@
         <activity android:name="io.refueler.merchant.feature.settings.MintDetailsActivity"
             android:exported="false"
             android:label="@string/mint_details_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.MintsSettingsActivity">
@@ -237,10 +250,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.settings.MintsSettingsActivity" />
         </activity>
+
         <activity android:name="io.refueler.merchant.feature.settings.SecuritySettingsActivity"
             android:exported="false"
             android:label="@string/settings_security_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
@@ -252,51 +266,7 @@
         <activity android:name="io.refueler.merchant.feature.settings.LanguageSettingsActivity"
             android:exported="false"
             android:label="@string/language_settings_title"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.settings.SettingsActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.settings.SettingsActivity" />
-        </activity>
-        
-        <!-- PIN Security Activities -->
-        <activity android:name="io.refueler.merchant.feature.pin.PinEntryActivity"
-            android:exported="false"
-            android:label="Enter PIN"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
-        
-        <activity android:name="io.refueler.merchant.feature.pin.PinSetupActivity"
-            android:exported="false"
-            android:label="Set Up PIN"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.settings.SecuritySettingsActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.settings.SecuritySettingsActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.pin.PinResetActivity"
-            android:exported="false"
-            android:label="Reset PIN"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.pin.PinEntryActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.pin.PinEntryActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.settings.AboutActivity"
-            android:exported="false"
-            android:label="About"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
@@ -305,17 +275,67 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
+        <!-- PIN activities -->
+        <activity android:name="io.refueler.merchant.feature.pin.PinEntryActivity"
+            android:exported="false"
+            android:label="Enter PIN"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- PinSetupActivity and PinResetActivity: retained in manifest,
+             class files unchanged. PIN setup is a provisioning-time dashboard
+             operation; reset is an Owner tab operation on the tablet terminal.
+             Neither runs on the floor device in normal operation. -->
+        <activity android:name="io.refueler.merchant.feature.pin.PinSetupActivity"
+            android:exported="false"
+            android:label="Set Up PIN"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.settings.SecuritySettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.settings.SecuritySettingsActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.pin.PinResetActivity"
+            android:exported="false"
+            android:label="Reset PIN"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.pin.PinEntryActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.pin.PinEntryActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.settings.AboutActivity"
+            android:exported="false"
+            android:label="About"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.settings.SettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.settings.SettingsActivity" />
+        </activity>
+
+        <!-- BtcMapExplainerActivity retained in manifest; class will compile
+             even with BtcMap banner removed from ModernPOSActivity. -->
         <activity android:name="io.refueler.merchant.feature.btcmap.BtcMapExplainerActivity"
             android:exported="false"
             android:label="BTCMap"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
-        
+
         <activity android:name="io.refueler.merchant.feature.settings.DeveloperSettingsActivity"
             android:exported="false"
             android:label="@string/developer_settings_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
@@ -327,7 +347,7 @@
         <activity android:name="io.refueler.merchant.feature.settings.ErrorLogsActivity"
             android:exported="false"
             android:label="@string/developer_error_logs_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.DeveloperSettingsActivity">
@@ -339,7 +359,7 @@
         <activity android:name="io.refueler.merchant.feature.settings.WalletLogsActivity"
             android:exported="false"
             android:label="@string/developer_wallet_logs_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.DeveloperSettingsActivity">
@@ -351,7 +371,7 @@
         <activity android:name="io.refueler.merchant.feature.settings.SeedPhraseActivity"
             android:exported="false"
             android:label="@string/seed_phrase_toolbar_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SecuritySettingsActivity">
@@ -359,24 +379,23 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.settings.SecuritySettingsActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.settings.RestoreWalletActivity"
             android:exported="false"
             android:label="@string/restore_progress_title"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SecuritySettingsActivity">
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
+                android:name="android:support.PARENT_ACTIVITY"
                 android:value=".feature.settings.SecuritySettingsActivity" />
         </activity>
-        
-        <!-- Withdraw Activities -->
+
         <activity android:name="io.refueler.merchant.feature.settings.WithdrawLightningActivity"
             android:exported="false"
             android:label="Withdraw"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.MintsSettingsActivity">
@@ -384,11 +403,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.settings.MintsSettingsActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.settings.WithdrawMeltQuoteActivity"
             android:exported="false"
             android:label="Confirm Withdrawal"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.WithdrawLightningActivity">
@@ -396,11 +415,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.settings.WithdrawLightningActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.settings.WithdrawSuccessActivity"
             android:exported="false"
             android:label="Withdrawal Complete"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".ModernPOSActivity">
@@ -408,12 +427,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ModernPOSActivity" />
         </activity>
-        
-        <!-- Item Management Activities -->
+
         <activity android:name="io.refueler.merchant.feature.items.ItemEntryActivity"
             android:exported="false"
             android:label="Add Item"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:windowSoftInputMode="adjustResize"
@@ -422,124 +440,29 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.items.ItemListActivity" />
         </activity>
-        
+
         <activity android:name="io.refueler.merchant.feature.items.BarcodeScannerActivity"
             android:exported="false"
             android:label="@string/barcode_scanner_title"
-            android:theme="@style/Theme.Numo.Fullscreen"
+            android:theme="@style/Theme.Refueler.Fullscreen"
             android:screenOrientation="portrait"
             android:parentActivityName=".feature.items.ItemEntryActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.items.ItemEntryActivity" />
         </activity>
-        
-        <!-- Reusable QR Code Scanner -->
+
         <activity android:name="io.refueler.merchant.feature.scanner.QRScannerActivity"
             android:exported="false"
             android:label="@string/qr_scanner_title"
-            android:theme="@style/Theme.Numo.Fullscreen"
+            android:theme="@style/Theme.Refueler.Fullscreen"
             android:screenOrientation="portrait" />
-        
+
         <activity android:name="io.refueler.merchant.feature.items.ItemListActivity"
             android:exported="false"
             android:label="Items"
-            android:theme="@style/Theme.Numo"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.settings.SettingsActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.settings.SettingsActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.tips.TipsSettingsActivity"
-            android:exported="false"
-            android:label="Tips"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.settings.SettingsActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.settings.SettingsActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.tips.TipSelectionActivity"
-            android:exported="false"
-            android:label="Add a Tip"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".ModernPOSActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ModernPOSActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.items.ItemSelectionActivity"
-            android:exported="false"
-            android:label="Checkout"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".ModernPOSActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ModernPOSActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.items.CheckoutScannerActivity"
-            android:exported="false"
-            android:label="@string/checkout_scanner_title"
-            android:theme="@style/Theme.Numo.Fullscreen"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".feature.items.ItemSelectionActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.items.ItemSelectionActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.baskets.SavedBasketsActivity"
-            android:exported="false"
-            android:label="@string/saved_baskets_title"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.items.ItemSelectionActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.items.ItemSelectionActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.baskets.BasketArchiveActivity"
-            android:exported="false"
-            android:label="@string/basket_archive_title"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.baskets.SavedBasketsActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.baskets.SavedBasketsActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.baskets.BasketNamesSettingsActivity"
-            android:exported="false"
-            android:label="@string/basket_names_settings_title"
-            android:theme="@style/Theme.Numo"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:parentActivityName=".feature.settings.SettingsActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.settings.SettingsActivity" />
-        </activity>
-        
-        <activity android:name="io.refueler.merchant.feature.settings.BtcPaySettingsActivity"
-            android:exported="false"
-            android:label="@string/btcpay_settings_title"
-            android:theme="@style/Theme.Numo"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
             <meta-data
@@ -547,10 +470,10 @@
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
 
-        <activity android:name="io.refueler.merchant.feature.autowithdraw.AutoWithdrawSettingsActivity"
+        <activity android:name="io.refueler.merchant.feature.tips.TipsSettingsActivity"
             android:exported="false"
-            android:label="@string/auto_withdraw_title"
-            android:theme="@style/Theme.Numo"
+            android:label="Tips"
+            android:theme="@style/Theme.Refueler"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:parentActivityName=".feature.settings.SettingsActivity">
@@ -558,8 +481,106 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.settings.SettingsActivity" />
         </activity>
-        
-        <!-- HCE Service for NDEF tag emulation -->
+
+        <activity android:name="io.refueler.merchant.feature.tips.TipSelectionActivity"
+            android:exported="false"
+            android:label="Add a Tip"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".ModernPOSActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ModernPOSActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.items.ItemSelectionActivity"
+            android:exported="false"
+            android:label="Checkout"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".ModernPOSActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ModernPOSActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.items.CheckoutScannerActivity"
+            android:exported="false"
+            android:label="@string/checkout_scanner_title"
+            android:theme="@style/Theme.Refueler.Fullscreen"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".feature.items.ItemSelectionActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.items.ItemSelectionActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.baskets.SavedBasketsActivity"
+            android:exported="false"
+            android:label="@string/saved_baskets_title"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.items.ItemSelectionActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.items.ItemSelectionActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.baskets.BasketArchiveActivity"
+            android:exported="false"
+            android:label="@string/basket_archive_title"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.baskets.SavedBasketsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.baskets.SavedBasketsActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.baskets.BasketNamesSettingsActivity"
+            android:exported="false"
+            android:label="@string/basket_names_settings_title"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.settings.SettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.settings.SettingsActivity" />
+        </activity>
+
+        <activity android:name="io.refueler.merchant.feature.settings.BtcPaySettingsActivity"
+            android:exported="false"
+            android:label="@string/btcpay_settings_title"
+            android:theme="@style/Theme.Refueler"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.settings.SettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.settings.SettingsActivity" />
+        </activity>
+
+        <!-- AutoWithdrawSettingsActivity retained in manifest; class unchanged.
+             AutoWithdrawManager removed from ModernPOSActivity only. -->
+        <activity android:name="io.refueler.merchant.feature.autowithdraw.AutoWithdrawSettingsActivity"
+            android:exported="false"
+            android:label="@string/auto_withdraw_title"
+            android:theme="@style/Theme.Refueler"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:parentActivityName=".feature.settings.SettingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".feature.settings.SettingsActivity" />
+        </activity>
+
+        <!-- HCE Service retained in manifest. The service class still exists
+             in the codebase; it is simply no longer activated from ModernPOSActivity.
+             Full removal (class + manifest entry) is a NumoPay-C clean-up item. -->
         <service android:name=".ndef.NdefHostCardEmulationService"
             android:exported="true"
             android:permission="android.permission.BIND_NFC_SERVICE">
@@ -571,8 +592,8 @@
                 android:name="android.nfc.cardemulation.host_apdu_service"
                 android:resource="@xml/aid_list" />
         </service>
-        
-        <!-- FileProvider for camera image capture -->
+
+        <!-- FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="io.refueler.merchant.fileprovider"
@@ -582,6 +603,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
     </application>
 
 </manifest>
