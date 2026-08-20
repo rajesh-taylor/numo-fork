@@ -104,14 +104,17 @@
         <item name="backgroundTint">@color/refueler_gold</item>
     </style>
 
-    <!-- Legacy aliases — one of each, no duplicates -->
+    <!--
+        Legacy aliases — dot-notation only.
+        R.style.Theme_Numo resolves to Theme.Numo (Android converts dots→underscores in R).
+        No underscore-form duplicates — those cause symbol table collisions.
+        values-v31/themes.xml and values-night-v31/themes.xml inherit from Theme.Numo.
+    -->
     <style name="Theme.Numo" parent="Theme.Refueler" />
     <style name="Theme.Numo.Fullscreen" parent="Theme.Refueler.Fullscreen" />
-    <style name="Theme.Numo.BottomSheet" parent="Theme.Refueler.BottomSheet" />
     <style name="Theme.Numo.Splash" parent="Theme.Refueler.Splash" />
-    <style name="Theme_Numo" parent="Theme.Refueler" />
-    <style name="Theme_Numo_Dialog" parent="Theme.Refueler.Dialog" />
-    <style name="Theme_Numo_BottomSheet" parent="Theme.Refueler.BottomSheet" />
+    <style name="Theme.Numo.Dialog" parent="Theme.Refueler.Dialog" />
+    <style name="Theme.Numo.BottomSheet" parent="Theme.Refueler.BottomSheet" />
     <style name="Widget.Numo.BottomSheet" parent="Widget.MaterialComponents.BottomSheet" />
 
 </resources>
