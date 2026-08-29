@@ -1,5 +1,5 @@
 # REFUELER-BRIDGE.md — Refueler cross-project context
-> **Version:** 5.2 | **Created:** 28 July 2026 | **Updated:** S73 · 2026-08-28
+> **Version:** 5.5 | **Created:** 28 July 2026 | **Updated:** S73b / NB-1 · 2026-08-29
 > Lives in `refueler-share/` (root), `refueler-io/docs/`, `refueler-legend/` (root), `refueler-pass/` (root), and `numo-fork/` (root).
 > This file is the handshake between Projects — not a substitute for repo-specific context files.
 > Higher MasterContext version number always wins on divergence.
@@ -10,7 +10,7 @@
 
 Refueler is a suite of Bitcoin-native privacy products built by Rajesh Taylor (solo founder, London). Operating within UK jurisdictional law. Not a fintech product. Not a loyalty app.
 
-**Products:** Share (anonymous encrypted file transfer, live at `refueler.io/share/`) · Legend (privacy-first Bitcoin block explorer, post-B9) · Merchant terminal (Fenchurch St line cafés and restaurants — tablet, counter/kitchen, landscape) · **Relay** (`io.refueler.merchant`, formerly NumoPay fork — in-venue order entry, Android phone, floor/waiter staff, portrait) · Refueler Pass (Lightning-native ticketing and venue access — own repo + Claude project) · **Refill** (consumer app, React Native, Blink Lightning — commuter pre-orders + Legend + Pass)
+**Products:** Share (anonymous encrypted file transfer, live at `refueler.io/share/`) · Legend (privacy-first Bitcoin block explorer, post-B9) · Merchant terminal (Fenchurch St line cafés and restaurants — tablet, counter/kitchen, landscape) · **Relay** (`io.refueler.merchant`, formerly NumoPay fork — in-venue order entry, Android phone, floor/waiter staff, portrait) · Refueler Pass (Lightning-native ticketing and venue access — own repo + Claude project) · **Refill** (consumer app, React Native, LNbits Lightning — commuter pre-orders + Legend + Pass)
 
 **Product names locked CC-103:** Floor staff Android app = Relay ("Relay by Refueler"). Consumer app = Refill. Both names tie to the Refueler ecosystem without requiring explanation.
 
@@ -155,7 +155,9 @@ Refueler is a suite of Bitcoin-native privacy products built by Rajesh Taylor (s
 
 ---
 
-## Lightning provider — CRITICAL (S73 · 28 Aug 2026)
+## Lightning provider — RESOLVED (Opus-2 · 29 Aug 2026)
+
+> **RESOLVED:** provider locked to **LNbits-on-Hetzner (phoenixd-backed)** for all Refueler projects. Node bootstrap = NB-series pre-B7. The Blink-death record below is retained as history, not an open decision.
 
 **Blink custodial accounts discontinued in UK by August 31 2026.** Blink has ended custodial service in the UK region due to regulation. The Blink API is unavailable after migration to non-custodial. This affects ALL Refueler projects:
 
@@ -174,13 +176,21 @@ Refueler is a suite of Bitcoin-native privacy products built by Rajesh Taylor (s
 
 **LIGHTNING_BACKEND env var abstraction** already designed in Share Worker — provider swap requires no Worker code changes, only new secrets and env var value.
 
-**Ops wallet note:** Remove all references to "Blink ops wallet" from onboarding docs and merchant handover materials before first real merchant. Replace with chosen provider equivalent.
+**Ops wallet note:** Remove all references to "Blink ops wallet" from onboarding docs and merchant handover materials before first real merchant. Replace with LNbits Ops wallet on Hetzner.
 
 ---
 
-## Ops wallet — locked CC-98 [PROVIDER PENDING — see Lightning provider section above]
+## Ops wallet — RESOLVED (S73b / NB-1 · 29 Aug 2026)
 
-~~**Blink ops wallet ("Refueler Ops"):**~~ Second BTC wallet for Refueler ops — separate from treasury. Used exclusively for onboarding test payments, Lightning address confirmation (21-sat sends), and support call testing. Top-ups logged as business expense in Refueler Crypto Ops Ledger (sats + GBP equivalent at time of transfer). **Provider to be confirmed post-pre-Opus-2 session.**
+**Provider:** LNbits Ops wallet on Hetzner Instance A. Replaces Blink ops wallet entirely.
+
+**Created at:** NB-3 (first LNbits session) — Ops wallet is the only wallet provisioned at bootstrap. Share and Pass wallets are created at their respective build sessions (Share at B7-S74, Pass at Pass-A).
+
+**Key:** Ops wallet holds the **admin key** (required for outbound sends). Share wallet holds **invoice/read key only** (no spend capability). Admin key stored offline — password manager + written copy in physically secure location. Never in any repo or context file.
+
+**Purpose:** 21-sat Lightning address confirmations after merchant onboarding changes · onboarding test sends · support call testing. Top-ups logged as business expense in Refueler Crypto Ops Ledger (sats + GBP equivalent at time of transfer).
+
+**Float:** ~£300 sats. Review every 3 months. Liquidate via phoenixd splice-out to Sparrow bech32 only when balance materially exceeds float — Sparrow setup is deferred, not a bootstrap requirement.
 
 **AM access model (current):** Rajesh holds wallet. AM requests top-up; Rajesh transfers internally. AM never uses personal wallet for Refueler business.
 
@@ -255,9 +265,9 @@ Esplora-compatible endpoint → one URL paste for Sparrow users. Distribution ch
 
 **What it is:** A static, permanent inbox address that allows any sender to deliver encrypted files to the inbox holder without either party needing an account, and without Refueler being able to link senders to recipients or to each other.
 
-**Tier placement:**
-- Production Max — entry point for the full Silent Drop feature set.
-- Creative Premium — lighter version: smaller storage cap, shorter TTL per transfer.
+**Tier placement (corrected Opus-2 — Production Max only):**
+- Production Max — the Silent Drop tier. Lightning-only.
+- Creative Premium — **no** Silent Drop (no "lite" version; the boundary is qualitative: send-focused tier vs standing-receive tier). *(Removed the earlier stale "lighter version" line — it contradicted the Production-Max-only lock below.)*
 - Free tier — no Silent Drop.
 
 **Mechanics:**
@@ -282,6 +292,8 @@ The Silent Drop is architecturally the Share implementation of a BOLT12-style st
 
 Implementation decision locked — **Option A:** borrow BOLT12 cryptography, not the Lightning network. Cloudflare Worker acts as blinded relay over HTTPS; secp256k1 blinded paths. Buildable on existing Cloudflare + Worker infrastructure. No Lightning node required for this feature. No zero-sat invoice UX problem for users. Option B (real BOLT12 zero-amount invoices, requires B9 node) noted as architecturally cleaner but gated on node provisioning and introduces user-facing complexity that is not justified for Share's professional audience.
 
+**Note (confirmed Opus-2):** phoenixd natively supports BOLT12 offers (as does Phoenix Wallet). This means native Lightning-layer BOLT12 receive is available on our stack without LND — a useful future option distinct from Option A. BOLT12 blinded paths protect against *external* payer/sniffer correlation; they do not hide destination from ACINQ (the LSP). ACINQ sees aggregate receives; individual payer identity remains private from them. This is our disclosed-processor position, unchanged. SP-native send/receive is a separate B9+ story requiring a full node (see §Liquidation).
+
 **Journalist use case (canonical):** Journalist publishes one QR or link. Any source sends documents indefinitely. Each upload is unlinkable to every other. No correlation between senders. Journalist's network identity never revealed. This is the cleanest public articulation of the two-axis category definition applied to a real workflow.
 
 **Network privacy:** Mullvad VPN recommendation covers Share's threat model without requiring onion routing infrastructure. Cloudflare's global edge + Mullvad handles the network layer. No Share-operated onion routing required.
@@ -296,29 +308,76 @@ The same BOLT12-inspired static offer mechanism supports Pass standing invitatio
 - Recovery cliff is a feature: "Your inbox exists only where you keep it. Refueler has nothing to recover because we never had it."
 - KV unit economics: negligible (~$0.00053/user/month at 30 transfers). Not a constraint.
 - Shared page for journalist/source-protection copy — not a dedicated landing page.
-- Two tidy-up sessions to sequence post-Opus-2: one for tier naming/copy, one for Stripe objects.
+- **SD-block placement (locked Opus-2):** `NB → B7 → SYNC → RU1/RU2 → HQ → SD-block → SW`. SD-feature ships pre-B9; journalist hero copy gated until B9 (blinded-relay review + VPN scoping). Incident-response tabletop must complete before SD-block launch (first self-serve customer).
+- **Two tidy-up sessions (locked Opus-2, stay at B7-close, pre-SD):** S89 = tier naming + "Silent Drop" name lock (no Stripe objects); S90 = Stripe **price objects for Stripe-rail tiers only** — SD/Lightning-only tier gets **no** Stripe object (would attach identity). S89 strictly precedes S90.
 
 ## Competitive intelligence
 - The gap Silent Drop closes is named the correlation problem (not the discovery problem): can a recipient maintain a permanent public receive-point such that no two transfers — same or different senders — can be linked to each other or to the recipient? The two-axis category definition remains unchanged and primary. Silent Drop is its sharpest illustration, not a third pillar.
 
 ---
 
-## Share × Lightning — B9 node infrastructure (locked AD-HOC · 27 Aug 2026)
+## Share × Lightning — node infrastructure (locked Opus-2 · 29 Aug 2026; runbook locked S73b / NB-1 · 29 Aug 2026)
 
-**Hetzner node selected:** CAX21 (€5.77/mo, 8GB RAM, 80GB NVMe).
-**Software:** LND + Neutrino mode. Not pruned bitcoind — Neutrino syncs in 4–8 hours, pruned bitcoind takes days and requires more storage.
-**Co-located services on Share node:** LND instance + SimpleX SMP server + Tor hidden service.
-**Tor latency:** not a concern — the node handles signalling only, not file transfer. File bytes travel Cloudflare edge; only Lightning payment signals touch the node.
+**Hetzner node:** CAX21 (€5.77/mo base + ~€0.50 IPv4; live all-in price to be confirmed at NB-2 checkout. FX ~0.857 EUR/GBP at 28 Aug 2026. Monthly billing. IPv4 retained.)
+**Software:** **phoenixd (ACINQ)** as the Lightning node and LNbits funding source (no bitcoind/no full node — this is what keeps CAX21 viable) + **LNbits** (Docker + PostgreSQL, per official LNbits recommendation) + **Cloudflare Tunnel** (`cloudflared` daemon, Worker→LNbits, no inbound ports) + **Tor** (one daemon, per-service .onion). LND is **deferred**, trigger-gated (see below).
+**Tor latency:** not a concern — the node handles payment signalling only; file bytes travel the Cloudflare edge.
+**Liquidation:** phoenixd **splice-out** to on-chain → **standard bech32 address in Sparrow Wallet** (Sparrow setup deferred — not a bootstrap requirement; £300 float stays in phoenixd, reviewed every 3 months). Not loop-out — that reintroduces a third-party correlator.
 
-**Instance separation rule (locked):**
-Share Lightning node and Legend Lightning node must run on separate Hetzner instances. A single fatal error — kernel panic, disk failure, misconfiguration — must not take both products' payment rails offline simultaneously.
-- Share node: CAX21, B9 scope.
-- Legend node: separate CAX21, provisioned when Legend build begins (post-B9).
-- SimpleX SMP server co-located with Share node only. Its failure is lower severity than the payment rail and does not justify a separate instance.
+**NB-series runbook (locked S73b / NB-1 · 29 Aug 2026) — supersedes the 3-step sketch in Share-Master-Context §334-337:**
 
-**Upgrade trigger for Share node:** when Lightning payment volume requires dedicated resources, move to CX32 or larger. Decision at that point whether SimpleX migrates or stays.
+- **NB-1 (this session):** runbook written and locked. No server touches.
+- **NB-2 (refueler-share project, 2–3 sessions):** Hetzner CAX21 provision + OS hardening (ufw default-deny, fail2ban, SSH keys-only, unattended-upgrades, non-root sudo user) + phoenixd install. **STOP at first run: 12-word seed written to physical offline media, read back and verified before any funds.** Confirm phoenixd connects to ACINQ (`getinfo` healthy). Install `cloudflared`, create tunnel `refueler-lightning` (ingress empty until NB-3). Record Sparrow bech32 address for NB-3 liquidation test — deferred if Sparrow not yet set up.
+- **NB-3 (refueler-share project, 2–3 sessions):** LNbits install (Docker + PostgreSQL). Set funding source = PhoenixdWallet → local phoenixd. **Disable all extensions.** Create **Ops wallet only**; record admin + invoice keys offline (password manager + written copy). Point Cloudflare Tunnel ingress at LNbits. Prove API access over tunnel hostname with `X-Api-Key`. Invoice round-trip test: create → pay from external wallet → `GET paid:true`. Nightly encrypted backup routine established (`age`-encrypted LNbits DB + cloudflared creds → USB passport drive). LNbits DB retained 6 years minimum (HMRC).
+- **NB-4 (refueler-share project, 2 sessions):** Tor install (one daemon). Distinct .onion for LNbits admin UI + phoenixd HTTP API; HS keys backed up encrypted. Validate LNbits admin over .onion (Tor Browser desktop + Onion Browser GrapheneOS — bookmark both). Validate phoenixd node-view over .onion. Hardening review. Set liquidation reserve (£300 float, 3-month review). Cloudflare Access service-token on tunnel hostname: decide at this session, defer to B9 if complex. Add Tor HS keys to nightly backup.
+- **NB-5 (refueler-io project, 2 sessions):** Point Ops-dependent Supabase Edge Functions at LNbits Ops wallet — set `LNBITS_URL` + Ops admin key as EF secrets. Strip all Blink references from EF config and merchant handover docs. Confirm consumer→merchant LNURL-pay path untouched. Withdraw Blink 31-sat dust; inactivate Blink account. Live 21-sat send from Ops wallet to prove path. **Share wallet and Worker secrets are NOT set here — that is B7-S74.**
 
-**B7 Lightning provider:** Blink was the planned B7 provider — now defunct (UK custodial discontinued Aug 31 2026). Replacement to be confirmed in pre-Opus-2 session. See Lightning provider section above.
+**Wallet structure (locked S73b / NB-1):**
+- **Bootstrap (NB-3):** Ops wallet only. Admin key (can spend). Ops float ~£300 sats.
+- **B7-S74:** Share wallet created. Invoice/read key only (no spend). `LNBITS_URL` + Share invoice key set as Worker secrets at session open.
+- **Pass-A:** Pass wallet created. Key type TBD at Pass-A.
+- **Never:** LNbits Cashu extension wallet (own mint), any extension wallet not earned by a build session.
+
+**Extension policy (locked S73b / NB-1):**
+- **Enabled at bootstrap:** none. Core payments API only (`POST /api/v1/payments`, `GET /api/v1/payments/{hash}`, `GET /api/v1/wallet`).
+- **Enabled only at the session that earns it:** LNURLp (if static receive address wanted for Ops top-ups); LNURLw (Pass reward payouts, at Pass-A).
+- **Never:** LNbits Cashu extension · TPoS · Shop/Market · SatsPay · Splitpayments · Streamer · LNURLdevice · Watch-only · Boltcards (audit again at Pass-A physical cards only) · Boltz (dead) · any Nostr extension · any third-party bridge.
+
+**API layering (locked S73b / NB-1):**
+- All Refueler automation (Workers, Edge Functions) → **LNbits REST only**.
+- phoenixd reached only by: LNbits internally (funding source) + Rajesh directly (admin/liquidation, local + Tor). phoenixd bound to loopback — not on the Cloudflare Tunnel.
+- Virtual-wallet balance = LNbits `GET /api/v1/wallet`. Node balance = phoenixd `getbalance`. These are different numbers; the LNbits sum ≤ phoenixd total (gap = fees/unallocated).
+
+**Cloudflare Tunnel (locked S73b / NB-1):**
+- One tunnel: `refueler-lightning`. Exposes LNbits only. Non-obvious subdomain of `refueler.io` (finalise at NB-2).
+- `LNBITS_URL` format: full https origin, no trailing slash, e.g. `https://ln.refueler.io`. Worker appends `/api/v1/payments`.
+- Auth on API: LNbits wallet key in `X-Api-Key` header. Tunnel adds no auth (the key is the auth).
+- Human admin does NOT use this hostname — use the LNbits .onion. Tunnel is machine-to-machine only.
+
+**Tor scope (locked S73b / NB-1):**
+- Distinct .onion per service — never shared.
+- LNbits admin UI: **yes** — phone/laptop admin path.
+- phoenixd HTTP API: **yes** — node-view + liquidation path.
+- LSP transport: **no** — phoenixd dials out to ACINQ; no inbound hidden service needed.
+- SSH: **no** (deferred) — clearnet, keys-only + ufw + fail2ban is sufficient now.
+
+**Two-tool model (locked S73b / NB-1):**
+- **Node view** (total sats, when to sweep, liquidation): phoenixd HTTP API over .onion or SSH — bookmarked in Tor Browser (desktop) + Onion Browser (GrapheneOS). The consumer Phoenix app is a separate self-custodial wallet; it does NOT connect to a remote phoenixd.
+- **Accounting view** (Ops/Share/Pass split, invoice creation, 21-sat sends): LNbits admin UI over .onion — bookmarked in same browsers.
+
+**Backup strategy (locked S73b / NB-1):**
+- **phoenixd 12-word seed:** physical offline media (paper or steel), read back and verified by Rajesh before any funds hit the node. This is the sole fund-recovery secret. Recovery model: seed + ACINQ cooperation (ACINQ retains their channel-state side — accepted phoenixd trust posture, consistent with LND-trigger #2). No LND-style SCB rotation.
+- **12-word vs 24-word:** 128-bit entropy is unbreakable by any known attack. 12-word single-sig locked for bootstrap. Multisig revisited at LND-trigger (sustained revenue milestone, not a current blocker).
+- **Nightly encrypted backup:** LNbits DB + cloudflared tunnel credentials + Tor hidden-service keys. Encrypted with `age` (offline recipient key held by Rajesh). Destination: USB passport drive. Revisit at first 100 paid customers. LNbits DB retained minimum 6 years (HMRC business records). Cost: £0 currently.
+
+**Instance topology (confirmed Opus-2):**
+- **Instance A — Share + Pass** (CAX21): phoenixd + LNbits (Ops/Share/Pass wallets) + cloudflared + Tor. Provisioned at NB-series, pre-B7. The only box needed to open B7.
+- **Instance B — Legend** (separate CAX21): post-B9, when Legend build begins. Share and Legend rails must never share a failure domain.
+- **Instance C — SimpleX SMP** (own box, B9): moved off the funds instance. A public messaging relay is a larger inbound attack surface; the payment node stays the leanest, least-exposed box. Not needed until B9.
+- **Tor scope:** per-service hidden services (distinct .onion each), never one shared onion.
+
+**Phoenixd → LND trigger (locked Opus-2):** migrate to LND only when EITHER (1) sustained ≥ £10k/mo Lightning receipts for 3 consecutive months AND a named operator is committed to channel ops; OR (2) ACINQ discontinues/changes phoenixd terms (the Blink lesson: provider-dependence forces the move, not cost). Routing-fee income ≈ £0 on a receive leaf — not a reason to switch. Full cost model in Share-Master-Context.md §Phoenixd → LND trigger.
+
+**B7 Lightning provider:** LNbits-on-Hetzner (phoenixd-backed), locked pre-Opus-2. Node bootstrap is the NB-series pre-B7 block. Blink dead. See Lightning provider section above.
 
 ---
 
@@ -566,16 +625,20 @@ in SESSIONS.md. Load: CLAUDE.md · SESSIONS.md · MASTER.md · legend-use-cases.
 | **Multi-[n]** | refueler-legend, refueler-share, refueler-pass, refueler-io | Share×Legend distress integration locked. Pass×Legend address watch locked. Recovery Coordination Layer v3 candidate. Article 24 scoped. UC-9 session prompt produced. BRIDGE v5.0. |
 | **AD-HOC · 27 Aug 2026** | refueler-share, refueler-pass | Silent Inbox product name + full spec locked. Stripe vs Lightning tier split locked. Hetzner CAX21 node selected (LND + Neutrino + SimpleX SMP + Tor). Instance separation rule locked. NUT-00 v3 + NUT-10 v3 Nutroot secrets logged from Cashu dev call 36. Pass × Nutroot use case set locked. BOLT12-inspired static offer as Silent Inbox primitive locked (Option A). BRIDGE v5.1. |
 | **S73 · 28 Aug 2026** | refueler-share | Pre-B7 Blink checklist complete. `BLINK_SHARE_API_KEY` + `BLINK_SHARE_WALLET_ID` set. Callback endpoint confirmed. CRITICAL: Blink discontinuing custodial accounts in UK by Aug 31 2026 — API unavailable post-migration. Affects ALL Refueler projects. Lightning provider replacement decision required before B7 code starts. Pre-Opus-2 comparison session queued. BRIDGE v5.2. |
+| **pre-Opus-2 · 28 Aug 2026** | all repos | Lightning provider locked: **LNbits on Hetzner CAX21** for all Refueler projects. Strike eliminated (custodial). Voltage eliminated (US company, invoice metadata exposure). Memory audit: 6 stale entries removed. **Boltz submarine swaps dead** (suspended Aug 3 2026 — AI-assisted infrastructure exploits). Blockstream Swaps exists but irrelevant: Silent Payments on-chain is the liquidation model, no swap service required. Node bootstrap is new B7 pre-work (3–4 weeks, Opus planning session S73b). Pre-server work scoped (LNbits repo study, extension audit, API confirmation, runbook design). BRIDGE v5.3. |
+| **Opus-2 · 29 Aug 2026** | refueler-share (+ all repos on next push) | B7 resequenced for LNbits/**phoenixd** (funding source). **NB-series** node bootstrap = pre-B7, gates all B7 code. S74–S76 rewritten for LNbits REST; webhook corrected (unsigned callback → authenticated GET re-verify). **Instance topology confirmed:** Share+Pass = Instance A; SimpleX → own Instance C (B9); Legend → Instance B (post-B9); Tor per-service onions; cloudflared for Worker→LNbits. **Phoenixd→LND trigger locked** (≥£10k/mo × 3mo + named operator, OR ACINQ provider event). **SD-block** placed post-HQ, pre-SW; SD-feature pre-B9, journalist copy gated to B9. S89/S90 tidy-up confirmed at B7-close. **SYNC-1** dual-repo asset fix locked before frontend work. Corrected: LND+Neutrino → phoenixd+LNbits; Silent Drop CP-"lite" contradiction removed (Production Max only). Blink cleanup checklist produced (execute at first B7 build session). BRIDGE v5.4. |
+| **S73b / NB-1 · 29 Aug 2026** | refueler-share (+ all repos next block close) | Node bootstrap runbook locked. NB-series is 5 phases (NB-1…NB-5), each 2–3 counted sessions. Supersedes 3-step MC sketch. **Locked:** Docker+PostgreSQL for LNbits · Ops-only wallet at bootstrap (Share at B7-S74, Pass at Pass-A) · Share Worker secrets to B7-S74 · Ops admin key offline, Share invoice/read key only · zero extensions at bootstrap · LNbits-front layering (Workers/EFs never call phoenixd) · Cloudflare Tunnel exposes LNbits only · phoenixd loopback-only · two .onions (LNbits admin + phoenixd API) · node-view = phoenixd API over .onion (consumer Phoenix app does not connect to remote phoenixd) · 12-word seed single-sig, physical offline, verified pre-funding · age-encrypted nightly backup to USB passport drive · 6-year LNbits DB retention · £300 float, 3-month review · Sparrow deferred · NB-5 in refueler-io project. BRIDGE v5.5. |
 
 ---
 
 ## Active action items (Rajesh)
 
-- **URGENT: Lightning provider replacement** ← Blink custodial discontinued UK Aug 31. Affects Share (B7), refueler.io POS, Relay, Refill. Pre-Opus-2 comparison session: LNbits on Hetzner CAX21 vs Voltage vs Strike API. Decision must be locked before B7 code starts.
+- **[Lightning — ALL projects] LNbits on Hetzner CAX21 LOCKED.** Blink dead. Node bootstrap is B7 pre-work. NB-1 runbook complete. Next: NB-2 (provision + phoenixd + Cloudflare Tunnel — refueler-share project).
+- **[All products] Remove all Blink references** from merchant handover docs, Worker secrets, and any config files across all repos. Replace `BLINK_API_KEY` / `BLINK_SHARE_API_KEY` with `LNBITS_URL` / `LNBITS_API_KEY`. Execute at NB-5 for refueler-io; at B7-S74 for Share Worker.
+- **[All products] Boltz submarine swaps dead** (Aug 3 2026). Liquidation model: phoenixd splice-out to bech32 in Sparrow Wallet. Sparrow setup deferred — not a bootstrap requirement. SP-native is B9+.
+- **Push BRIDGE v5.5** to `numo-fork/` root, `refueler-share/`, `refueler-legend/`, `refueler-pass/` root, `refueler-io/docs/`
 - **Open Revolut Business account** ← Stripe fiat commission payout destination (before first real merchant)
-- **Create Refueler Crypto Ops Wallet** ← replacement for Blink ops wallet, provider TBC post-pre-Opus-2
-- **Create Refueler Crypto Ops Ledger** ← sats + GBP equivalent columns
-- **Push BRIDGE v5.2** to `numo-fork/` root, `refueler-share/`, `refueler-legend/`, `refueler-pass/` root, `refueler-io/docs/`
+- **Create Refueler Crypto Ops Ledger** ← sats + GBP equivalent columns (Ops wallet created at NB-3)
 - Add test `onchain_address` to Raj's Steakhouse in Supabase dashboard
 - Push `refueler-app` dev branch ← CA-1 prerequisite
 - Disconnect `share.refueler.io` from Cloudflare Pages
@@ -593,7 +656,7 @@ in SESSIONS.md. Load: CLAUDE.md · SESSIONS.md · MASTER.md · legend-use-cases.
 - **[Pass]** Define address watch credential subtype — Access credential variant, non-monetary, triggered state. Dedicate to Pass planning session.
 - **[All products]** Privacy page update queued
 - **[All products]** Docs ↔ UI sync rule active from Design-A
-- **[All products]** Remove all Blink ops wallet references from merchant handover docs before first real merchant — replace with confirmed replacement provider
+- **[All products]** Remove all Blink ops wallet references from merchant handover docs before first real merchant — replace with LNbits Ops wallet on Hetzner
 
 ---
 
