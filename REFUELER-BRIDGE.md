@@ -251,17 +251,17 @@ The Refueler product ecosystem is anchored in London geography — specifically 
 
 ---
 
-## TH-Opus-2 decisions — locked 6 Sep 2026
+## TH-Opus-2 decisions — locked 6 Sep 2026; pricing updated 6 Sep 2026
 
-### Legend pricing (locked)
+### Legend pricing (locked — starting price, will reprice upward before Legend goes live)
 
 | Plan | Price | Notes |
 |---|---|---|
 | **Legend free** | £0 | Public block explorer surface. Private-query layer, native verifier, Share entitlement — all behind paywall. |
 | **Legend paid (monthly)** | **£50/mo** | Private-query layer + native OTS verifier + Sovereign Share entitlement (100 GB, no API). |
-| **Legend paid (annual)** | **£480/yr** | Ten months for twelve — framed as the annual price, **never as "savings" or a discount** (per no-discount-framing rule). |
+| **Legend paid (annual)** | **£600/yr** | Twelve months at the monthly rate. No discount framing, no savings framing — this is the annual price. Per no-discount-ever rule. |
 
-**Rationale (locked):** Legend priced as the senior product that includes Share, not Share with an explorer bolt-on. The private-query layer, native verifier, BOLT12 primitives (B9+), and OTS primitives (TH-series) justify significant daylight above Sovereign (£24/mo). £50 creates room for future features without repricing. Sovereign Share subscribers do not receive Legend access — the entitlement is one-directional only (Legend → Share).
+**Rationale (locked):** Legend priced as the senior product that includes Share, not Share with an explorer bolt-on. The private-query layer, native verifier, BOLT12 primitives (B9+), and OTS primitives (TH-series) justify significant daylight above Sovereign (£24/mo). £50/mo is a starting price — it will only increase as features are added before Legend goes live. Legend infrastructure (Hetzner node, full Bitcoin node, block scanning) carries real running costs that justify future price increases. Sovereign Share subscribers do not receive Legend access — the entitlement is one-directional only (Legend → Share).
 
 ### Cross-product entitlement architecture (locked)
 
