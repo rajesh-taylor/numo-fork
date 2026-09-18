@@ -1,5 +1,5 @@
 # REFUELER-BRIDGE.md — Refueler cross-project context
-> **Version:** 9.1 | **Created:** 28 July 2026 | **Updated:** Share-Brand-Opus-1 · 2026-09-11
+> **Version:** 9.6 | **Created:** 28 July 2026 | **Updated:** Share-Dash-2 · 2026-09-18
 > Lives in `refueler-share/` (root), `refueler-io/docs/`, `refueler-legend/` (root), `refueler-pass/` (root), and `numo-fork/` (root).
 > This file is the handshake between Projects — not a substitute for repo-specific context files.
 > Higher MasterContext version number always wins on divergence.
@@ -37,6 +37,7 @@ Refueler is a suite of Bitcoin-native privacy products built by Rajesh Taylor (s
 | `share-nav.njk`, `share-footer.njk`, `share.js`, `blake3/` | BLAKE3 source + build tooling |
 | Admin dashboard pages `src/share/admin/` | Admin Worker endpoints |
 | Notes articles at `refueler.io/notes/` | `notes-articles-list.md` (editorial planning) |
+**MCP server boundary:** `refueler-mcp` is a separate repo (`/Users/rajeshtaylor/Documents/refueler-mcp/`). Runs in the agent's trust domain — not in `refueler-share`. Handles ciphertext only. Apache 2.0. One repo serves all Refueler products. SW-MCP-1 shipped `ab7e010` (12 Sep 2026).
 
 **Dual-repo asset sync (SYNC-1 · 31 Aug 2026):** `share.js`, `share.css`, `share-tokens.css`, `status.css`, `fflate.min.js`, `qr-creator.min.js`, `blake3/` exist in both repos. **`refueler-share/frontend/` is canonical.** `refueler.io/src/share/assets/` is the mirror. Mirror copies carry a `GENERATED FILE` header — never edit them directly. Sync tool: `bin/sync-share.sh` in `refueler-share` (**path: `bin/sync-share.sh`**, not repo root). Run after every edit to any shared asset. `plans.css` is io-only and excluded from sync.
 
@@ -148,14 +149,17 @@ manual sed patches to `refueler.io/src/share/index.njk` — the script owns that
 | **Pass-Vocab-2 · 8 Sep 2026** | refueler-pass (vocabulary) | **Westminster vocabulary lock — five locations: St James's Square (organiser set / keyholder privacy), The Citadel (Deed / cold-storage recovery), Admiralty Arch (NUT-11 presentation threshold / tier gate), Buxton Memorial Fountain (architectural abolition of surveillance category / compulsion argument), Supreme Court UK (independent verifier / Legend separation / Miller II × Raven canary). Trinity House confirmed Share geography. All five: whitepaper + closed-door only.** BRIDGE v8.7. |
 | **SW5-Opus · 9 Sep 2026** | all repos | **Receipt verifier architecture locked. Symmetric HMAC chosen over Ed25519 — asymmetric evidence stays with OTS/Legend. Per-product master key, namespaced domain tag convention (`refueler.{product}.{artefact}.v{n}`) adopted as ecosystem-wide signing standard. Receipt schema locked: `receipt_type: "acceptance"\|"collection"`, `event: "cargo.accepted"\|"cargo.discharged"`. Detached `sig`, no replay window. `cargo.in_bond` reserved-not-built for Execution Dock / Three Tides 48h grace. South-bank geography reserved: Greenwich Observatory (authoritative time / timestamping primitive), The Clink (compulsion surface / Liberty-that-is-a-gaol), Deptford (shipbuilder's yard / API + white-label build layer). London Stone on Cannon Street reserved (the civic anchor / the record that survived). See §SW5-Opus decisions.** BRIDGE v8.9. |
 | **SW7-Opus · 10 Sep 2026** | refueler-share | **Per-client onboarding runbook locked. AM runbook: in-repo sanitised template (`ONBOARDING-RUNBOOK.md`), off-repo per-client instances. Disclosure email wording finalised (both rails); `[recovery credential]` → "Deed" (anon) / omitted (anon-API no-Deed policy); `[anonymous standing-receive]` → "anonymous standing-receive inboxes". Rail gate: Worker-enforced by credential type + explicit `rail: "identity"` KV field; no mutation endpoint; change = re-onboarding. Physical credential delivery: wax seal, company stationery, monospace 8-char grouped keys + BLAKE3 fingerprint + QR; identity rail only. Anonymous-rail key delivery: client self-provisions from dashboard (v2); v1 physical delivery. No Deed for anonymous-API clients — credential is the key, rotation (`POST /api/v1/keys/rotate`, 24h grace) is the recovery mechanism for compromise; total loss = account loss, stated plainly. Smoke test: `refueler-smoke.txt` provided, synthetic cargo only; sandbox non-anonymous advisory formalised. MCP manifest locked: 3 v1 tools (`refueler_capabilities` / `refueler_send_file` / `refueler_check_transfer`); `refueler_quote` folded into `refueler_capabilities` response; standalone `refueler_quote` / `refueler_balance` deferred to B9+ (BOLT12 agent payment). Three-audience doc structure locked (principal / IT / agent). Ciphertext-only invariant restated. Surface/suppress field lists locked. `rfs_test_` credentials sufficient for sandbox MCP — no dedicated MCP test mode; `refueler_capabilities` returns `environment: "sandbox"` as guard. Client operational security template added for anonymous-rail clients without existing key management procedure. Transition flow (identity → anon): planned capability, build when SD ships; 60-day receive-only grace, billing stops day 0 of wind-down, no new uploads, anon rail live from day 1; documented in runbook as planned-capability section. Silent Drop confirmed anonymous rail only. Grace-period billing corrected: identity billing stops on declaration date, wind-down window at no charge. Four security gaps closed: one-time secret delivery via dashboard show-once; sandbox non-anonymous advisory; production keypair provenance; smoke test cargo policy. `refueler-smoke.txt` added to repo root. `DISCLOSURE-TEMPLATES.md` added to repo root. `MCP-MANIFEST.md` added to repo root.** BRIDGE v9.0. |
-
 | **Share-Brand-Opus-1 · 11 Sep 2026** | all repos | **Tier and rail naming locked.** Four tiers: Pro Bono (public good, `free`) · Citizen (paid, Registered rail, `paid_registered`, Stripe) · Sovereign (paid, Bearer rail, `paid_bearer`, Lightning) · Chartered (commercial API/MCP, `chartered`, Registered or Bearer). Rail user-facing names: Registered (identity/Stripe) · Bearer (anonymous/Lightning). Citizen and Sovereign identical price and features — differ by rail/identity posture only; never presented as a value ladder. Feature gates (permanent record, availability window) are paid-vs-free — copy must read "Citizen and Sovereign" / "paid tiers", never "Sovereign only". Internal logic keys decoupled from display names — invariant. Stripe product display name → Citizen; price IDs and lookup keys unchanged. Vocabulary additions for Share: Sealed/Under seal (encrypted transfer), Lodge (upload), Collect (download), Struck off (deleted), In camera (anonymous), Enrolment (onboarding), Chambers (dashboard), Freehold/Leasehold (permanent/expiring record), Conduit (blind relay). Product voice invariant locked. Full rationale: `docs/Share-Brand-Terminology.md`. **BRIDGE v9.1.** |
+| **Share-1 · 11 Sep 2026** | refueler-share | **Tier logic keys decoupled from display names in code.** `worker/src/tiers.js` introduced: `TIERS` enum + `TIER_DISPLAY`/`TIER_RAIL` maps + helpers `displayName`/`isPaidTier`/`isBearerTier`/`isCharteredTier`. **Key discovery:** `index.js` never held `citizen`/`sovereign` strings — live Worker vocabulary is `free`/`creative`/`max` (Stripe axis) + `'api'` (Chartered). `citizen`/`sovereign` are display-layer + S89 rename narrative only; the hazard in the Share-1 brief could not occur. Share-1 wired the one real gate: `'api'` → `TIERS.CHARTERED`/`isCharteredTier` in `index.js` (6 sites) and `webhook_reg.js` (1 site). **`TIERS.CHARTERED` wire value stays `'api'`** — `isCharteredTier(x) === (x === 'api')`, no data migration required; `'chartered'` wire rename deferred. `free`/`creative`/`max` → `paid_*` and test-fixture rewrite (`manifest_tg.js`/`lightning.js` contracts) deferred to Share-2. Stripe lookup keys, price IDs, `.njk`, `refueler-io` untouched. **BRIDGE v9.2.** |
+| **SW-MCP-1–6 · 12 Sep 2026** | refueler-mcp (new repo) | **MCP server built from scaffold to functionally complete on the identity rail in one day.** SW-MCP-1 (`ab7e010`): repo scaffold, HMAC signing, API client, `refueler_capabilities` tool, 32 tests. SW-MCP-2 (`bc64298`): `crypto.js` (AES-256-GCM, BLAKE3 rolling root), `fragment.js` (grammar v1), `hashSecret()` parity confirmed against `worker/src/nut11.js` — bare SHA-256, no domain tag. SW-MCP-3 (`817afa7`): `rate-card.js`, `refueler_quote`, `refueler_balance`. SW-MCP-4 (`d5fc84d`): `refueler_send_file`, D-1 filename fix (X-File-Name = constant `"encrypted-payload"`, real filename in URL fragment only) applied to MCP tool and consumer `frontend/upload.js` simultaneously. SW-MCP-5 (`e78e953`): `refueler_check_transfer`, `deriveState()`, path traversal guard on send. SW-MCP-6 (`713156a`): `docs/DEMO.md` on-stage runbook (pre-flight, happy path, failure modes, honesty script), `scripts/demo-send.js` (runnable demo, Carbon/Paper terminal output, exits 0/1), `scripts/demo-payload.txt`. 228 tests passing. SW-MCP-7 gates on B7/NB-4. SW-MCP-8 next (npm distribution, Apache 2.0). **BRIDGE v9.3.** |
+| **B9-Opus · 12 Sep 2026** | refueler-share · refueler-legend · refueler-pass (forward notes) | **Merkle / MMR / SMT / ZK design locked. Seven decisions (D-1…D-7). Full spec: `merkle-spec-v1.md` (refueler-share repo root).** Two roots, never conflated: ciphertext-chunk `merkle_root` (Worker-verifiable, storage integrity) ≠ plaintext `blake3PlaintextRoot` (recipient-only, end-to-end, permanently barred from Worker + receipts). Tree: RFC 6962 unbalanced, domain-separated (`0x00`/`0x01`), BLAKE3 node hash, `tree_algo: "rfc6962-unbalanced-blake3-v1"`. Chunk hashes in sidecar `{uuid}/hashes` — never inline in manifest (64 KB ceiling). Download = sidecar-root check + verify-then-flush per chunk + 409 on mismatch. Receipt `merkle_root`/`verified` fields: unblocked post-B9-3, ciphertext root only. MMR on-device by default; published root opt-in via Share OTS relay — "smart contract" framing retired as inaccurate. Leaf encryption AES-256-GCM, on-device key. SMT = complement to Supabase (public verifiability layer), never the live arbiter, no build slot without a design partner. ZK build slot only where it hides which set member satisfied a predicate, no NUT-22/nutroot primitive covers it, and a buyer is committed. Due-diligence proof = FCA SYSC 6.3 / MLR 2017 reg. 40 record-keeping evidence — NOT FATF travel rule compliance. Open Banking leaves self-asserted; bank-signed leaves required before "verified" language. Both MLRO-flagged. Five-vertical use-case matrix and B9 session plan (B9-1…B9-8, 3-session buffer) in `merkle-spec-v1.md`. **BRIDGE v9.4.** |
 
 ---
 
 ## Active action items (Rajesh)
 
 - **[Lightning — ALL projects] LNbits on Hetzner CAX21 LOCKED.** Next: NB-2 (provision + phoenixd + Cloudflare Tunnel — refueler-share project).
+- **[Share] Locked block sequence:** `SW-MCP (complete 1–6) → SW-MCP-8 (npm distribution) → B8-Opus (NUT-11 Mode 2 / Locke design lock) → [Hetzner commitment] → NB-2–NB-4 → B7 → B8 build → SD-block → B9 build`. B9-Opus complete (12 Sep 2026) — design locked ahead of build.
 - **[All products] Remove all Blink references** from merchant handover docs, Worker secrets, and config files. Replace `BLINK_API_KEY` / `BLINK_SHARE_API_KEY` with `LNBITS_URL` / `LNBITS_API_KEY`. Execute at NB-5 for refueler-io; at B7-S74 for Share Worker. Remaining: Worker secrets + `LIGHTNING_STATE_LABELS` display text in `dashboard.js` (update at B7-S74 when node live).
 - **[Share] Run `bin/sync-share.sh`** after every edit to any shared frontend asset.
 - **Open Revolut Business account** ← Stripe fiat commission payout destination (before first real merchant).
@@ -176,6 +180,7 @@ manual sed patches to `refueler.io/src/share/index.njk` — the script owns that
 - **[All products / Legend] Legend node costs.** When Legend infrastructure is scoped: attribute a share of node operating costs to Share and Pass, both of which depend on Legend for OTS verification and block queries. Accounting convention for margin model — resolve at Legend scoping Opus.
 - **[Legend / pricing] Pleb-Bitcoiner design principle.** Pro Bono tier must be genuinely useful, not a nag screen. Sovereign (Bearer) tier priced for Bitcoin conviction, not compliance budget. Chartered is where commercial weight sits. Lock formally at Legend planning session.
 - **[Share] Engage solicitor for standard Art. 28 DPA addendum** before first identity-API client. Priority review items: §4 (no-uptime SLA) and §5 (DPA). Client-paper review (bespoke DPA) is a Professional-band service, not included at £99.
+- **[Share] MLRO / compliance counsel to confirm:** (1) due-diligence proof framing as SYSC 6.3 / MLR reg. 40 record-keeping evidence before any sales or marketing copy; (2) whether self-asserted Open Banking MMR leaves carry sufficient evidential weight for insurance/lending decisions before any "verified" language is published. Both flagged at B9-Opus.
 - **[Share vocabulary track] API/MCP whitepaper atom descriptors.** `refueler_capabilities` / `refueler_quote` / `refueler_balance` need London-register naming before B9 whitepaper. Not urgent — allocate at a naming session.
 
 ---
@@ -193,7 +198,10 @@ The Refueler product ecosystem is anchored in London geography — specifically 
 | **Royal Mint** | Share's Cashu mint — issues credentials, governs movement, observes events, holds no cargo content. The Royal Mint operated inside the Tower walls for ~500 years; the pun lands at the technical level (a Cashu *mint*). Signal-only / no melt path stated separately in properties. | Product / whitepaper |
 | **Port Authority** | The admission-control layer at the upload boundary — Content-Type denylist + rate-limiting gate. Every transfer passes it, as every vessel passed the Port of London Authority to enter the Pool. An authority that controls what enters, not an issuer. | Docs / internal |
 | **Quay** | A named individual intake point issued to a specific client or sender. Quay/Key double-meaning: a bitcoiner reads one, a consultant reads the other. | Professional users |
-| **Harbourmaster** | The admin dashboard — the account holder who controls their drops, views the receipt ledger, manages Quays | Everyone |
+| **Navy Office** | The operator admin dashboard — the back-office ops surface for Rajesh. Named for the Navy Office on Seething Lane, where Pepys worked and lived yards away. Contains the Execution Dock (Harbourmaster view), KV monitor, Lightning state, API stats, growth signal, client-error log. Permalink: `/share/admin/navy-office` (rename from `dashboard` at Share-Dash-3). | Internal / ops only |
+| **Harbourmaster** | The live-transfer monitoring view *inside the Navy Office* — the operator's view of who is in port, what is pending, what has expired. Matches the `execution_dock.js` header ("Harbourmaster sent-transfers view"). Not a top-level surface; not the client account area. | Internal / ops only |
+| **Chambers** | The Citizen/Sovereign client account area — "Your Chambers." Inns of Court register. Where a barrister keeps their own affairs. Existing Harbourmaster client-facing HTML to be renamed `chambers.html` at Share-Dash-3. | Everyone (client-facing) |
+| **Custom House** | The Chartered API/MCP client surface — credential issuance, rate-card assessment, DPA, HMAC key management. Additive on upgrade from Citizen/Sovereign: client keeps Chambers and is additionally admitted to the Custom House. Reserved this session; not yet built. | Chartered clients |
 | **Cargo** | The encrypted file bundle in transit. Used in API event names (`cargo.accepted` / `cargo.discharged` / `cargo.in_bond` reserved), webhook payloads, and developer docs. Not used in patient-facing or professional UI copy — use "documents" there. | Docs / API / webhooks |
 | **Locke** | The credential-as-key mechanism — presented to access Harbourmaster. Locke/Lock double-meaning. Named in whitepaper and docs; not necessarily surfaced to end users. | Whitepaper / docs |
 | **Raven** | The warrant canary system — replaces "canary" across all products. Ravens signal safety by presence, not by dying. Absence = compromise signal. Architecturally more accurate than the canary metaphor. One Raven per Liberty — four total. | Whitepaper / docs / public |
@@ -236,7 +244,6 @@ The Refueler product ecosystem is anchored in London geography — specifically 
 |---|---|---|---|---|
 | Silent Drop | ✓ | ✓ | ✓ | ✓ |
 | Lighthouse | ✓ | ✓ | ✓ | ✓ |
-| Harbourmaster | ✓ | ✓ | ✓ | ✓ |
 | Quay | ✓ | ✓ | ✓ | ✓ |
 | a Pass (reward token / access credential) | ✓ (UI name) | ✓ | ✓ | ✓ |
 | a Note (Merchant reward stamp) | ✓ (UI name) | ✓ | ✓ | ✓ |
@@ -245,7 +252,11 @@ The Refueler product ecosystem is anchored in London geography — specifically 
 | Royal Mint | — | ✓ (Share mint) | ✓ | ✓ |
 | Port Authority | — | — | ✓ (admission-control layer) | ✓ |
 | Dragon | — | — | — | ✓ (status indicator) |
-| Execution Dock | — | — | ✓ | ✓ (dashboard card) |
+| Execution Dock | — | — | ✓ | ✓ (Harbourmaster view inside Navy Office) |
+| Navy Office | — | — | — | ✓ (operator admin dashboard — internal/ops only) |
+| Harbourmaster | — | — | — | ✓ (live-transfer view inside Navy Office — internal/ops only) |
+| Chambers | — | ✓ (client account area) | ✓ | ✓ |
+| Custom House | — | — | ✓ (Chartered API/MCP — reserved, not built) | ✓ |
 | Three Tides | — | — | — | ✓ |
 | Traitor's Gate | — | — | ✓ (feature internal name) | ✓ |
 | Tidal Window | — | — | ✓ | ✓ |
@@ -293,7 +304,7 @@ The Refueler product ecosystem is anchored in London geography — specifically 
 | Deptford Royal Dockyard | — | — | ✓ (WP §API layer) | ✓ (held — closed-door) |
 | London Stone (Cannon Street) | — | — | ✓ (WP §permanence / §anchoring) | ✓ (held — alongside Cleopatra's Needle) |
 
-**Rule:** if a term is not in the Website/UI column, it does not appear on `refueler.io` outside of the whitepaper and notes articles. Harbourmaster, Quay, "a Pass", "a Note", and "Clearance" are the only geography/product terms that have passed the website test.
+**Rule:** if a term is not in the Website/UI column, it does not appear on `refueler.io` outside of the whitepaper and notes articles. Quay, "a Pass", "a Note", "Clearance", and **Chambers** are the client-facing geography/product terms that have passed the website test. **Navy Office**, **Harbourmaster**, and **Custom House** are internal/operator/Chartered terms — they do not appear in public product copy.
 
 ---
 
@@ -535,7 +546,7 @@ receipt_sig = HMAC-SHA256(
 
 ### Field discipline (load-bearing)
 
-- **No BLAKE3 root in any receipt.** Merkle root verification blocked until B9. `chunk_count` + `size_bytes` only. An acceptance receipt attests "we hold N chunks totalling B bytes" — never "the file is intact end-to-end."
+- **No BLAKE3 root in any receipt until B9-3 is green.** After B9-3: ciphertext `merkle_root` + `verified` permitted on collection receipt. Plaintext `blake3PlaintextRoot` permanently barred from all receipts.
 - **No recipient metadata — ever.** No IP, no UA, nothing about who collected. A receipt goes to the sender; recipient metadata in it is a surveillance instrument. AE may log it; receipts never carry it.
 - **Fires once.** Acceptance: at manifest-write transition (a 409 resume-of-complete does not re-emit). Collection: at first complete download co-located with `pending_destruction` transition — subsequent re-downloads emit nothing (re-download count is a behavioural side-channel back to the sender).
 
@@ -564,6 +575,24 @@ receipt_sig = HMAC-SHA256(
 - Never recipient metadata (IP, UA, network) in any receipt field
 - Never re-emit a collection receipt on re-download — one emission per transfer
 - Never omit `cargo.in_bond` string from the reserved-events list when adding future event types
+
+---
+
+## B9-Opus decisions — locked 12 Sep 2026
+
+**Full spec: `merkle-spec-v1.md` (refueler-share repo root). §Merkle tree primitives forward notes previously in this file are superseded by that document.**
+
+Cross-product items carried here:
+
+- **Two roots, never conflated.** Ciphertext-chunk `merkle_root` (Worker-verifiable, storage integrity) ≠ plaintext `blake3PlaintextRoot` (recipient-only, end-to-end integrity, permanently barred from Worker + all receipts). "End-to-end file integrity" is the recipient's plaintext check — the Worker never participates in it and cannot forge it.
+- **Tree construction (D-1).** RFC 6962 unbalanced, domain-separated (`0x00` leaf / `0x01` node), BLAKE3 node hash, big-endian leaf ordering (matches AAD convention), `chunk_count` committed in manifest. `tree_algo: "rfc6962-unbalanced-blake3-v1"`. Duplicate-last-leaf padding rejected (CVE-2012-2459).
+- **Chunk hash storage (D-3).** Persisted in R2 sidecar `{uuid}/hashes` (raw 32-byte concat). Never inline in manifest — `safeGetManifest()` 64 KB ceiling. Download sequence: sidecar-root check → verify-then-flush per chunk → 409 on mismatch. Full reconstruction is the only honest basis for `verified`.
+- **Receipt `merkle_root`/`verified` (D-2).** Unblocked post-B9-3, ciphertext root only. Override of the previous "no BLAKE3 root in receipt" rule — split: ciphertext root unlocked at B9-3; plaintext root barred forever.
+- **MMR anchoring (D-4).** On-device default; published root opt-in via Share OTS relay. "Smart contract" framing retired as inaccurate — say "Bitcoin-anchored" or "public timestamping layer". Leaf encryption AES-256-GCM, on-device key (Deed→HKDF). Applies across Share / Legend / Pass.
+- **SMT (D-5).** Complements Supabase double-spend guard (public verifiability layer) — never the live arbiter. No build slot without a design partner. London B2B token cases (legal single-use doc token, broker quote, property reference) = §Future work; legal single-use doc token = strongest wedge.
+- **ZK boundary (D-6).** Build slot only when (a) use case requires hiding which set member satisfied a predicate; (b) no NUT-22/nutroot primitive covers it; (c) buyer committed. Consumer history → plain MMR. Double-spend → SMT.
+- **Regulatory framing (D-7).** Due-diligence proof = FCA SYSC 6.3 / MLR 2017 reg. 40 record-keeping evidence — NOT FATF travel rule compliance (Rec. 16). Open Banking leaves self-asserted; bank-signed leaves required before any "verified" language. Both items flagged for MLRO / compliance counsel confirmation before marketing copy.
+- **Five-vertical matrix + B9 session plan (B9-1…B9-8, 3-session buffer pool):** full detail in `merkle-spec-v1.md`. **BRIDGE v9.4.**
 
 ---
 
@@ -690,7 +719,7 @@ The OTS committed value chosen at TH-1 — `SHA-256(blake3_root || url_fragment_
 
 ## Locke — credential-as-key design (locked AP-ARCH · 31 Aug 2026)
 
-**Locke is the name of the mechanism and the object** — the credential that unlocks the Harbourmaster dashboard. NUT-11 Mode 2 P2PK in its full form (B8). The name is operational: it is a Locke (not a lock), and it is a Locke (John, philosopher of consent — "no one can be put out of his estate, and subjected to the political power of another, without his own consent"). Both readings are correct.
+**Locke is the name of the mechanism and the object** — the credential that unlocks the Navy Office (admin) and, for clients, Chambers. NUT-11 Mode 2 P2PK in its full form (B8). The name is operational: it is a Locke (not a lock), and it is a Locke (John, philosopher of consent — "no one can be put out of his estate, and subjected to the political power of another, without his own consent"). Both readings are correct.
 
 **Locke lifecycle:**
 - **Issued:** at Harbourmaster onboarding. One Lightning payment → one Deed (BIP-39 mnemonic) → one Locke (secp256k1 keypair, secure enclave storage on device).
@@ -705,6 +734,14 @@ The OTS committed value chosen at TH-1 — `SHA-256(blake3_root || url_fragment_
 **Key storage exception:** Locke private keys stored in platform passkey / secure enclave. Documented exception to credentials-in-browser-memory-only rule. Applies to Locke only.
 
 **Locke is separate from the subscription credential.** Subscription = entitlement. Locke = access. Two separate objects from one payment event.
+
+---
+
+## Merkle tree primitives — design locked B9-Opus · 12 Sep 2026
+
+**Full spec: `merkle-spec-v1.md` (refueler-share repo root). All design decisions (D-1…D-7), the five-vertical use-case matrix, the B9 session plan (B9-1…B9-8), and the locked whitepaper claim language live there. The forward notes that previously appeared here are superseded.**
+
+Cross-product summary retained in §B9-Opus decisions above.
 
 ---
 
@@ -761,5 +798,73 @@ Sells short-lived WireGuard VPN access for Cashu ecash. Architecturally relevant
 **Not an integration target for Share.** Running Refueler-operated exit infrastructure moves the IP trust problem rather than solving it — Hetzner box would see user real IP AND Share traffic pattern. This is strictly worse than the current model. Correct recommendation remains: Mullvad (multi-hop) in B9 whitepaper. Share users tunnel their own VPN before hitting Share.
 
 **robwoodgate** is the author of PR #371, #421, cashu-vpn, and multiple CDK PRs. South-east England based. The most active contributor to Cashu's cryptographic layer currently. Worth cultivating as an ecosystem contact — potential whitepaper reviewer, Pass architecture feedback, btc++ Berlin.
+
+## B8-Opus decisions — locked 13 Sep 2026
+
+**Full spec: `B8-spec-v1.md` (refueler-share repo root). Cross-product summary retained here; §Locke above is superseded by that file.**
+
+**NUT-11 Mode 2 = keypair-binding (the Locke).** "Only the holder of key K can spend." Shared primitive: Share (upload-credential binding; later receiver-bound Silent Drop collection) + Pass (Chambers/Navy Office login, SD3). Locked once here for both.
+
+- **Deed → Locke: HKDF, not BIP-32.** `HKDF-SHA256(ikm=BIP39_seed, salt="refueler.locke.v1", info="locke_keypair")` → reduce/reject-sample to `1 ≤ d < n`. Consistent with the Deed→HKDF MMR-key pattern (B9-Opus). Auth key, not a spending key.
+- **Worker verify: sig → BDHKE → double-spend.** Both local checks before the Supabase atomic INSERT (spend commit always last). Schnorr BIP-340, x-only key from the 33-byte P2PK `data`; witness `{signatures:[…]}` verbatim; NUT-11 message preimage pinned against cashu-ts/nutshell vectors at B8-1.
+- **§Locke precision refinement (honest storage).** secp256k1 does **not** live in the Apple Secure Enclave (SE is P-256-only). Locke keys: native → Keychain/Keystore (biometric-gated); browser → WebAuthn-PRF-wrapped in IndexedDB, plaintext in memory only; MCP → agent process memory. Never browser plaintext.
+- **Compulsion surface (honest).** Removal from the KV pubkey set = the real surface. Injection is technically possible (Worker holds the KV) but useless (can't decrypt fragment-keyed cargo, can't impersonate, visible in the device list). Do not claim "cannot inject."
+- **`hashSecret()` (Mode 1, bare SHA-256) unchanged and independent.** Mode 1 (manifest) and Mode 2 (proof) coexist; different objects, different checks. MCP adds `deriveLockeFromDeed`/`signCredential`/`verifyCredential` — `hashSecret()` untouched.
+- **CDK pin: stay 0.17.2.** Worker hand-rolls BDHKE; does not import CDK. Review when 0.18+ ships a feature we consume.
+- **Build locus: direct in refueler-share** (B9-style). `refueler-ecash-lab` Mode 2 flag **retired**; lab reserved for ML-KEM (B10).
+- **NUT-22 boundary (restated).** NUT-22 (membership-anonymity, B10) ≠ Mode 2 (keypair-binding, B8) ≠ nutroot v3 (B12+). Orthogonal. Never conflate.
+- **Pass/SD3:** this spec is SD3's sign-off. SD3 consumes §4 (Locke lifecycle) verbatim; any change to the Locke construction re-opens B8-spec-v1.md, not an SD session.
+
+## Share-6-Opus decisions — locked 16 Sep 2026
+
+**Full spec: `Share-6-spec-v1.md` (refueler-share repo root). Cross-product summary retained here.**
+
+**Large uploads move off the Worker edge to R2 direct** — browser encrypts each 32 MiB chunk and PUTs it to a presigned S3 `PutObject` URL (`{uuid}/{iiii}`); the Worker only `initiate`s (Cashu verify+spend, size-cap guard on `resolvedTier`, mint URLs) and `finalise`s (write `merkle_root` + `{uuid}/hashes` sidecar). Removes SHARE-503 (CF-for-SaaS 503 under chunk burst) and the in-RAM `NotReadableError`.
+
+- **Per-object PUT, not S3 multipart.** `CompleteMultipartUpload` → one object, breaking the `{uuid}/{iiii}` per-chunk Merkle leaf (`merkle-spec-v1.md` §1) and the B9-3 download path. Per-object PUT preserves both.
+- **Integrity shift:** Worker upload-time verify is structurally lost (never sees parts); integrity moves entirely to download-time (B9-3). Block front-loads B9-1/B9-2/B9-3; **B9 build resumes at B9-4.** Consumer cutover gated on Share-6-5 green.
+- **No privacy/confidentiality change** for any product: AES in-browser pre-flight, key in fragment only, filename never at Worker, R2 holds keyless ciphertext.
+- **Cross-product:** the `initiate`/`finalise` contract is the surface the **Chartered MCP** adopts for large transfers later (aggregate-quota clients debit the credit pool at initiate); front-loading B9-1…3 also unblocks **B9-5 MMR** (the Legend/Pass collaboration primitive) sooner. Nutroot / NUT-22 / Silent Drop unaffected and out of scope — their boundaries (B8-spec, merkle-spec, PR #421) stand.
+- **CDK pin unchanged (0.17.2).** Presigning is SigV4 maths (aws4fetch, in-Worker); no CDK, no Amazon, no new recurring cost (R2 per-op pennies, zero egress).
+
+## Share-Dash-2 decisions — locked 18 Sep 2026
+
+**Session type: Opus (architecture + naming with downstream consequences). Two repos: refueler-share (Worker) + refueler-io (dashboard).**
+
+### Surface naming locked (permanent)
+
+Four surfaces, four names, each a real Pool-of-London institution:
+
+| Surface | Name | Audience | Notes |
+|---|---|---|---|
+| Operator admin/ops dashboard | **Navy Office** | Internal / Rajesh only | Named for the Navy Office, Seething Lane — Pepys worked and lived yards away. Pepys = patron saint of monitoring dashboards. |
+| Live-transfer monitoring view (inside Navy Office) | **Harbourmaster** | Internal / ops only | Matches `execution_dock.js` header ("Harbourmaster sent-transfers view"). Operator's view of who is in port. |
+| Citizen/Sovereign client account area | **Chambers** | Everyone (client-facing) | "Your Chambers." Inns of Court. Already theirs — existing Harbourmaster client-facing HTML renamed `chambers.html` at Share-Dash-3. |
+| Chartered API/MCP client surface | **Custom House** | Chartered clients | Where cargo is assessed, duty levied, papers issued. Additive on upgrade — client keeps Chambers, is additionally admitted. Reserved; not yet built. |
+
+**Upgrade path is additive:** Citizen/Sovereign who upgrades to Chartered keeps Chambers AND gains Custom House — not a migration. One sentence of onboarding copy: *"Your Chambers remain. The Custom House is where your credentials are issued."*
+
+**Pepys cross-reference:** Pepys buried his Parmesan cheese in his Seething Lane garden to protect it from the Great Fire. The Navy Office and his house were yards apart. Pepys also attended the execution at Execution Dock with complete equanimity — the two are geographically and biographically linked. Article potential (security-through-obscurity vs cryptographic security) noted in §Historical prior art.
+
+### Worker changes — deployed `34a9188d` · commit `d68ec8b`
+
+- **`handleFinalise` folded:** extracted from `worker/src/index.js` into `worker/src/handlers/finalise.js` (with `b64urlToBytes` as private helper). `index.js` 2526 → 2429 lines. Includes §6 dock-index enrichment.
+- **Dock enrichment:** `finalise.js §6` reads-then-merges `size_bytes` + `rail` + `merkle_root` into `dock_index:{uuid}` KV at finalise. Non-fatal (fire-and-forget). TTL recomputed from `expiry_timestamp`. `merkle_root` is the **ciphertext-chunk root only** — never `blake3PlaintextRoot`. `handleExecutionDock` returns `size_bytes` and `rail`; `merkle_root` withheld until Share-6-5 (one-line unlock commented in place). Download count deferred.
+- **Three new handlers:**
+  - `client_errors_kv.js` — server-observed 4xx/5xx rolling KV log (`admin:client_errors_log`, 90d/500-cap). Distinct from `/log/error` → AE (client-reported). `appendClientError` hooked into `timed()` + 404 + 500 egress.
+  - `api_stats.js` — `GET /admin/api-stats`: active keys (KV `api_quota_` prefix), requests 30d by rail (AE), API attach rate (AE), sandbox→live conversion (stubbed honestly — no KV signal exists in `sandbox.js`; wire when first Chartered client onboarded by adding `live_at` field to `sandbox_meta_` record).
+  - `news_events.js` — `GET/POST/DELETE /admin/news-events`: unified `{id, date, label, note, free?, paid?, api?}` array (`admin:news_events` KV). Rows with counts plot sparkline points; rows with label/note render as tick marks; rows may be both. Feeds the Navy Office growth-signal card (Share-Dash-3).
+- **`by_rail` display note:** AE groups by tier; `'free'` → rail `none`. Dashboard must render `none` bucket as "Pro Bono" not `"none"`. Carry into Share-Dash-3.
+
+### Deferred to Share-Dash-3 (Sonnet, gated on this deploy)
+
+- Navy Office file rename: `git mv dashboard.{html,js,css} navy-office.{html,js,css}` from refueler.io root. Title, wordmark sub-span (`dashboard` → `Navy Office`), sidebar, `<h1>`, `<link>`/`<script>` hrefs.
+- Chambers rename: `git mv` existing Harbourmaster client-facing HTML → `chambers.html`. Title, wordmark, copy, permalink.
+- Client-errors modal toggle: "Reported by browser (24h)" (AE) / "Observed by Worker (90d)" (KV) — two observers, not just two windows.
+- CPU-time stub card → API & MCP card: active keys · requests · rail split (Pro Bono label for `none`) · sandbox→live pending state.
+- Growth-signal card: three-line sparkline (free/paid/API from `admin:news_events`), tick-mark annotations, click-to-add form.
+- Execution Dock detail modal: flip `size_bytes` and `rail` from pending to live; `merkle_root` and Download count remain pending.
+
+**BRIDGE v9.6.**
 
 *"Nothing stops this train."*
